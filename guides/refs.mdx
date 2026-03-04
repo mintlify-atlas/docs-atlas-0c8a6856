@@ -1,0 +1,353 @@
+---
+title: Using Refs
+description: Access GTK widget instances directly using React refs
+---
+
+## Overview
+
+React refs allow you to access the underlying GTK widget implementation instances. This is useful for:
+
+- Calling imperative methods on widgets
+- Accessing widget properties directly
+- Manipulating native GTK APIs
+- Controlling navigation and visibility
+
+## Creating Refs
+
+Use React's `useRef` hook with the widget implementation type:
+
+```tsx
+import { useRef } from 'react';
+import { GtkEntry, GtkEntryImpl } from 'react-gtk-renderer';
+
+function MyComponent() {
+  const entryRef = useRef<GtkEntryImpl>();
+
+  return <GtkEntry ref={entryRef} />;
+}
+```
+
+<Note>
+  Import both the component (`GtkEntry`) and its implementation type (`GtkEntryImpl`). Use the implementation type for the ref.
+</Note>
+
+## Common Ref Patterns
+
+### Window Refs
+
+Control windows programmatically:
+
+```tsx
+import { useRef } from 'react';
+import { GtkWindow, GtkWindowImpl, GtkButton } from 'react-gtk-renderer';
+
+function DialogExample() {
+  const dialogRef = useRef<GtkWindowImpl>();
+
+  return (
+    <>
+      <GtkWindow defaultHeight={600} defaultWidth={800} title='Main Window'>
+        <GtkButton onClicked={() => dialogRef.current?.present()}>
+          Open Dialog
+        </GtkButton>
+      </GtkWindow>
+
+      <GtkWindow
+        modal
+        ref={dialogRef}
+        defaultHeight={400}
+        defaultWidth={400}
+        title='Dialog'>
+        <GtkButton onClicked={() => dialogRef.current?.close()}>
+          Close
+        </GtkButton>
+      </GtkWindow>
+    </>
+  );
+}
+```
+
+#### Window Methods
+
+- `present()` - Show and bring window to front
+- `close()` - Close the window
+
+### Stack Navigation Refs
+
+Navigate between pages using refs:
+
+```tsx
+import { useRef } from 'react';
+import {
+  GtkStack,
+  GtkStackImpl,
+  GtkStackPage,
+  GtkButton,
+  GtkStackTransitionType,
+} from 'react-gtk-renderer';
+
+function NavigationExample() {
+  const stackRef = useRef<GtkStackImpl>();
+
+  return (
+    <GtkStack
+      ref={stackRef}
+      transitionType={GtkStackTransitionType.SLIDE_RIGHT}>
+      <GtkStackPage name='home'>
+        <GtkButton
+          onClicked={() => {
+            stackRef.current.visibleChildName = 'settings';
+          }}>
+          Go to Settings
+        </GtkButton>
+      </GtkStackPage>
+
+      <GtkStackPage name='settings'>
+        <GtkButton
+          onClicked={() => {
+            console.log('Current page:', stackRef.current.visibleChildName);
+            stackRef.current.visibleChildName = 'home';
+          }}>
+          Back to Home
+        </GtkButton>
+      </GtkStackPage>
+    </GtkStack>
+  );
+}
+```
+
+#### Stack Properties
+
+- `visibleChildName` - Get or set the currently visible page by name
+- `visibleChild` - Get or set the currently visible page widget
+
+### Entry Refs
+
+Manipulate text entry content:
+
+```tsx
+import { useRef, useEffect } from 'react';
+import { GtkEntry, GtkEntryImpl } from 'react-gtk-renderer';
+
+function EntryExample() {
+  const entryRef = useRef<GtkEntryImpl>();
+
+  useEffect(() => {
+    // Set initial text
+    entryRef.current.buffer.text = 'Hello World';
+
+    // Modify text using buffer methods
+    entryRef.current.buffer.delete_text(11, -1);
+    entryRef.current.buffer.insert_text(11, ', Hi World', -1);
+  }, []);
+
+  return <GtkEntry ref={entryRef} />;
+}
+```
+
+#### Entry Properties and Methods
+
+- `text` - Get or set the entry text
+- `buffer` - Access the GtkEntryBuffer for advanced operations
+  - `buffer.text` - Get or set text via buffer
+  - `buffer.insert_text(position, text, length)` - Insert text at position
+  - `buffer.delete_text(start, end)` - Delete text range
+
+## Accessing Widget Properties
+
+All widget implementations provide access to common properties:
+
+```tsx
+import { useRef } from 'react';
+import { GtkButton, GtkButtonImpl } from 'react-gtk-renderer';
+
+function WidgetProperties() {
+  const buttonRef = useRef<GtkButtonImpl>();
+
+  const logProperties = () => {
+    const button = buttonRef.current;
+    console.log('Name:', button.name);
+    console.log('Visible:', button.visible);
+    console.log('Parent:', button.parent);
+    console.log('Root:', button.root);
+    console.log('Scale Factor:', button.scaleFactor);
+  };
+
+  return (
+    <GtkButton ref={buttonRef} onClicked={logProperties}>
+      Log Properties
+    </GtkButton>
+  );
+}
+```
+
+### Common Properties
+
+- `name` - Widget name
+- `visible` - Visibility state (get/set)
+- `parent` - Parent widget
+- `root` - Root widget of the tree
+- `scaleFactor` - Display scale factor
+
+## Accessing Native GTK Instance
+
+For advanced use cases, access the native GTK widget:
+
+```tsx
+import { useRef } from 'react';
+import { GtkButton, GtkButtonImpl } from 'react-gtk-renderer';
+
+function NativeAccess() {
+  const buttonRef = useRef<GtkButtonImpl>();
+
+  const accessNative = () => {
+    // Access the underlying GTK widget
+    const nativeWidget = buttonRef.current.nativeInstance;
+
+    // Call native GTK methods
+    // (use with caution)
+  };
+
+  return (
+    <GtkButton ref={buttonRef} onClicked={accessNative}>
+      Access Native
+    </GtkButton>
+  );
+}
+```
+
+<Note>
+  The `nativeInstance` property provides direct access to the GTK widget. Use this only when the React GTK API doesn't provide what you need.
+</Note>
+
+## Lifecycle Methods
+
+Widget implementations provide lifecycle methods:
+
+```tsx
+import { useRef } from 'react';
+import { GtkButton, GtkButtonImpl } from 'react-gtk-renderer';
+
+function LifecycleMethods() {
+  const buttonRef = useRef<GtkButtonImpl>();
+
+  const controlLifecycle = () => {
+    const button = buttonRef.current;
+
+    // Realize: create GDK resources
+    button.realize();
+
+    // Unrealize: destroy GDK resources
+    button.unrealize();
+
+    // Unparent: remove from parent
+    button.unparent();
+  };
+
+  return <GtkButton ref={buttonRef}>Control Me</GtkButton>;
+}
+```
+
+<Note>
+  Lifecycle methods are typically managed by React GTK automatically. Only use them for advanced scenarios.
+</Note>
+
+## Multiple Refs Pattern
+
+Manage multiple widget refs in a single component:
+
+```tsx
+import { useRef } from 'react';
+import {
+  GtkWindow,
+  GtkWindowImpl,
+  GtkStack,
+  GtkStackImpl,
+  GtkEntry,
+  GtkEntryImpl,
+  GtkButton,
+} from 'react-gtk-renderer';
+
+function MultiRefExample() {
+  const windowRef = useRef<GtkWindowImpl>();
+  const stackRef = useRef<GtkStackImpl>();
+  const entryRef = useRef<GtkEntryImpl>();
+
+  const handleSubmit = () => {
+    const text = entryRef.current.text;
+    console.log('Submitted:', text);
+    stackRef.current.visibleChildName = 'success';
+  };
+
+  return (
+    <GtkWindow ref={windowRef} defaultHeight={600} defaultWidth={800}>
+      <GtkStack ref={stackRef}>
+        <GtkStackPage name='form'>
+          <GtkEntry ref={entryRef} />
+          <GtkButton onClicked={handleSubmit}>Submit</GtkButton>
+        </GtkStackPage>
+
+        <GtkStackPage name='success'>
+          <GtkLabel label='Success!' />
+        </GtkStackPage>
+      </GtkStack>
+    </GtkWindow>
+  );
+}
+```
+
+## Ref Type Safety
+
+Always import and use the correct implementation types:
+
+```tsx
+import {
+  // Components
+  GtkWindow,
+  GtkStack,
+  GtkEntry,
+  GtkButton,
+  GtkBox,
+  GtkLabel,
+
+  // Implementation types for refs
+  GtkWindowImpl,
+  GtkStackImpl,
+  GtkEntryImpl,
+  GtkButtonImpl,
+  GtkBoxImpl,
+  GtkLabelImpl,
+} from 'react-gtk-renderer';
+```
+
+<Tip>
+  The pattern is consistent: `Gtk[Widget]` for the component, `Gtk[Widget]Impl` for the ref type.
+</Tip>
+
+## Best Practices
+
+<Steps>
+  <Step title="Use refs sparingly">
+    Prefer props and state over imperative ref manipulation when possible.
+  </Step>
+
+  <Step title="Check for null">
+    Always use optional chaining when accessing refs: `ref.current?.method()`
+  </Step>
+
+  <Step title="Use effects for initialization">
+    Perform ref-based initialization in `useEffect` to ensure the widget is mounted.
+
+    ```tsx
+    useEffect(() => {
+      if (entryRef.current) {
+        entryRef.current.text = 'Initial value';
+      }
+    }, []);
+    ```
+  </Step>
+
+  <Step title="Type your refs">
+    Always provide the implementation type to `useRef` for type safety.
+  </Step>
+</Steps>

@@ -1,0 +1,346 @@
+---
+title: 'Form Inputs'
+description: 'Handle text input with GtkEntry and style text using Pango attributes in React GTK'
+---
+
+Learn how to create form inputs using the `GtkEntry` component, handle user input, and apply text styling with Pango attributes.
+
+## Overview
+
+The `GtkEntry` component provides text input functionality in GTK applications. It supports:
+- Single-line text entry
+- Text change events
+- Programmatic text manipulation via buffer API
+- Rich text styling with Pango attributes
+
+## Basic Text Input
+
+Create a simple text entry field:
+
+```tsx
+import { GtkEntry } from 'react-gtk-renderer';
+
+<GtkEntry
+  onChanged={(entry) => {
+    console.log(entry.text);
+  }}
+/>
+```
+
+The `onChanged` event fires whenever the text in the entry changes, providing access to the entry instance with the current text value.
+
+## Complete Form Input Example
+
+Here's a full example demonstrating text input with styling and programmatic manipulation:
+
+<Steps>
+  <Step title="Import required components">
+    ```tsx
+    import {
+      GtkAlign,
+      GtkBox,
+      GtkEntry,
+      GtkEntryImpl,
+      GtkLabel,
+      GtkOrientation,
+      GtkWindow,
+    } from 'react-gtk-renderer';
+    import { useEffect, useRef } from 'react';
+    ```
+  </Step>
+
+  <Step title="Set up component with ref">
+    ```tsx
+    export function MyApp() {
+      const entryRef = useRef<GtkEntryImpl>();
+
+      useEffect(() => {
+        // Manipulate text on mount
+        entryRef.current.buffer.text = 'Hello World 1';
+        entryRef.current.buffer.delete_text(11, -1);
+        entryRef.current.buffer.insert_text(11, ', Hi World', -1);
+      }, []);
+
+      // Component continues...
+    }
+    ```
+  </Step>
+
+  <Step title="Render the entry with attributes">
+    ```tsx
+    return (
+      <GtkWindow defaultHeight={600} defaultWidth={800} title='Form Example'>
+        <GtkBox
+          marginStart={25}
+          marginEnd={25}
+          spacing={25}
+          valign={GtkAlign.CENTER}
+          halign={GtkAlign.CENTER}
+          orientation={GtkOrientation.VERTICAL}>
+          <GtkLabel label='Enter some text:' />
+
+          <GtkEntry
+            ref={entryRef}
+            attributes={[
+              {
+                start: 0,
+                end: 5,
+                type: 'foreground',
+                value: 'red',
+              },
+              {
+                start: 5,
+                end: 11,
+                type: 'weight',
+                value: 'bold',
+              },
+            ]}
+            onChanged={(entry) => {
+              console.log(entry.text);
+            }}
+          />
+        </GtkBox>
+      </GtkWindow>
+    );
+    ```
+  </Step>
+</Steps>
+
+## Pango Text Attributes
+
+Style portions of the entry text using Pango attributes. Each attribute defines styling for a character range:
+
+### Attribute Structure
+
+Each attribute object has these properties:
+- `start`: Starting character position (0-based)
+- `end`: Ending character position (exclusive)
+- `type`: The attribute type (see below)
+- `value`: The attribute value
+
+### Common Attribute Types
+
+<CodeGroup>
+```tsx Foreground Color
+{
+  start: 0,
+  end: 5,
+  type: 'foreground',
+  value: 'red',  // CSS color names or hex values
+}
+```
+
+```tsx Font Weight
+{
+  start: 5,
+  end: 11,
+  type: 'weight',
+  value: 'bold',  // 'normal', 'bold', 'light', or numeric values
+}
+```
+
+```tsx Font Style
+{
+  start: 0,
+  end: 10,
+  type: 'style',
+  value: 'italic',  // 'normal' or 'italic'
+}
+```
+
+```tsx Font Size
+{
+  start: 0,
+  end: 10,
+  type: 'size',
+  value: 16000,  // Size in Pango units (1 point = 1024 units)
+}
+```
+</CodeGroup>
+
+### Multiple Attributes Example
+
+Apply multiple styling attributes to different text ranges:
+
+```tsx
+<GtkEntry
+  attributes={[
+    {
+      start: 0,
+      end: 5,
+      type: 'foreground',
+      value: 'red',
+    },
+    {
+      start: 5,
+      end: 11,
+      type: 'weight',
+      value: 'bold',
+    },
+    {
+      start: 11,
+      end: 20,
+      type: 'style',
+      value: 'italic',
+    },
+  ]}
+/>
+```
+
+This creates text where:
+- Characters 0-5 are red
+- Characters 5-11 are bold
+- Characters 11-20 are italic
+
+## Text Buffer API
+
+Access the entry's text buffer through refs for programmatic text manipulation:
+
+<Accordion title="Setting Text">
+  Replace the entire text content:
+  
+  ```tsx
+  entryRef.current.buffer.text = 'New text content';
+  ```
+</Accordion>
+
+<Accordion title="Inserting Text">
+  Insert text at a specific position:
+  
+  ```tsx
+  // insert_text(position, text, length)
+  // Use -1 for length to insert the entire string
+  entryRef.current.buffer.insert_text(11, ', Hi World', -1);
+  ```
+  
+  Parameters:
+  - `position`: Character position to insert at (0-based)
+  - `text`: The text to insert
+  - `length`: Number of characters to insert (-1 for all)
+</Accordion>
+
+<Accordion title="Deleting Text">
+  Delete a range of characters:
+  
+  ```tsx
+  // delete_text(start, end)
+  // Use -1 for end to delete to the end of the text
+  entryRef.current.buffer.delete_text(11, -1);
+  ```
+  
+  Parameters:
+  - `start`: Starting position (0-based)
+  - `end`: Ending position (-1 for end of text)
+</Accordion>
+
+## Handling Text Changes
+
+The `onChanged` event provides access to the entry instance whenever text is modified:
+
+```tsx
+<GtkEntry
+  onChanged={(entry) => {
+    // Access current text
+    console.log('Current text:', entry.text);
+    
+    // You can also access the buffer
+    console.log('Buffer text:', entry.buffer.text);
+    
+    // Validate input
+    if (entry.text.length > 100) {
+      console.warn('Text too long!');
+    }
+  }}
+/>
+```
+
+<Note>
+  The `onChanged` event is fired for every text modification, including programmatic changes via the buffer API. Be careful to avoid infinite loops when modifying text inside the event handler.
+</Note>
+
+## Complete Working Example
+
+Here's the complete form input example from the React GTK source:
+
+```tsx app.tsx
+import {
+  GtkAlign,
+  GtkBox,
+  GtkEntry,
+  GtkEntryImpl,
+  GtkLabel,
+  GtkOrientation,
+  GtkWindow,
+} from 'react-gtk-renderer';
+import { useEffect, useRef } from 'react';
+
+export function MyApp() {
+  const entryRef = useRef<GtkEntryImpl>();
+
+  useEffect(() => {
+    // Set initial text
+    entryRef.current.buffer.text = 'Hello World 1';
+    // Delete from position 11 to end
+    entryRef.current.buffer.delete_text(11, -1);
+    // Insert new text at position 11
+    entryRef.current.buffer.insert_text(11, ', Hi World', -1);
+    // Final result: "Hello World, Hi World"
+  }, []);
+
+  return (
+    <GtkWindow defaultHeight={600} defaultWidth={800} title='Form Example'>
+      <GtkBox
+        marginStart={25}
+        marginEnd={25}
+        spacing={25}
+        valign={GtkAlign.CENTER}
+        halign={GtkAlign.CENTER}
+        orientation={GtkOrientation.VERTICAL}>
+        <GtkLabel label='Styled Text Entry' />
+
+        <GtkEntry
+          ref={entryRef}
+          attributes={[
+            {
+              start: 0,
+              end: 5,
+              type: 'foreground',
+              value: 'red',
+            },
+            {
+              start: 5,
+              end: 11,
+              type: 'weight',
+              value: 'bold',
+            },
+          ]}
+          onChanged={(entry) => {
+            console.log(entry.text);
+          }}
+        />
+      </GtkBox>
+    </GtkWindow>
+  );
+}
+```
+
+## Best Practices
+
+<Note>
+  **Use Refs for Initialization**: When you need to set initial text programmatically, use refs in a `useEffect` hook to ensure the component is mounted before manipulating the buffer.
+</Note>
+
+<Note>
+  **Attribute Positions**: Pango attributes use character positions, not byte positions. Make sure your start and end values correspond to actual character boundaries in the text.
+</Note>
+
+<Note>
+  **Event Handler Performance**: The `onChanged` event fires frequently. Avoid expensive operations in the handler. Consider debouncing or throttling for operations like API calls or validation.
+</Note>
+
+## Next Steps
+
+- Explore [basic application](/examples/basic-app) structure
+- Learn about [multiple windows](/examples/multiple-windows)
+- Check out the [GtkEntry component reference](/api/components/gtk-entry) for all available properties
+- See [GtkLabel documentation](/api/components/gtk-label) for display-only text with Pango attributes

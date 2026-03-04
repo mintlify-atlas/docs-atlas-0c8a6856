@@ -1,0 +1,274 @@
+---
+title: GtkStackPage
+description: A container widget representing a single page in a GtkStack
+---
+
+`GtkStackPage` represents a single page within a [`GtkStack`](/api/components/gtk-stack) container. It extends `GtkBox`, providing the same layout capabilities while serving as a stack page.
+
+## Props
+
+`GtkStackPage` inherits all props from [`GtkBox`](/api/components/gtk-box), including:
+
+<ParamField path="name" type="string">
+  The unique identifier for this stack page. Used to navigate to this page via `GtkStack.visibleChildName`.
+  
+  **Important:** Always set a `name` to enable programmatic navigation.
+</ParamField>
+
+<ParamField path="orientation" type="GtkOrientation">
+  The box's orientation - either `GtkOrientation.HORIZONTAL` or `GtkOrientation.VERTICAL`.
+  
+  Default: `GtkOrientation.HORIZONTAL`
+</ParamField>
+
+<ParamField path="spacing" type="number">
+  The amount of space in pixels between children.
+  
+  Default: `0`
+</ParamField>
+
+<ParamField path="homogeneous" type="boolean">
+  Whether all children should be allocated the same size.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  The child widgets to display in this page.
+</ParamField>
+
+### Inherited Props
+
+`GtkStackPage` extends [`GtkBox`](/api/components/gtk-box), which extends [`GtkWidget`](/api/components/gtk-widget), inheriting all layout, styling, and event handling properties.
+
+## Usage
+
+### Basic Stack Page
+
+```tsx
+import { 
+  GtkStack, 
+  GtkStackPage, 
+  GtkLabel,
+  GtkOrientation,
+  GtkAlign 
+} from 'react-gtk-renderer';
+
+function MyStack() {
+  return (
+    <GtkStack>
+      <GtkStackPage 
+        name="page1"
+        orientation={GtkOrientation.VERTICAL}
+        spacing={20}
+        valign={GtkAlign.CENTER}
+        halign={GtkAlign.CENTER}
+      >
+        <GtkLabel label="Welcome to Page 1" />
+      </GtkStackPage>
+    </GtkStack>
+  );
+}
+```
+
+### Multiple Pages with Navigation
+
+```tsx
+import { 
+  GtkStack, 
+  GtkStackPage, 
+  GtkStackImpl,
+  GtkButton, 
+  GtkLabel,
+  GtkBox,
+  GtkOrientation,
+  GtkAlign 
+} from 'react-gtk-renderer';
+import { useRef } from 'react';
+
+function MultiPageApp() {
+  const stackRef = useRef<GtkStackImpl>();
+  
+  return (
+    <GtkStack ref={stackRef}>
+      <GtkStackPage 
+        name="firstPage"
+        marginStart={25}
+        marginEnd={25}
+        spacing={25}
+        valign={GtkAlign.CENTER}
+        halign={GtkAlign.CENTER}
+        orientation={GtkOrientation.VERTICAL}
+      >
+        <GtkLabel label="First Page" />
+        <GtkButton 
+          label="Go to Second Page"
+          onClicked={() => {
+            stackRef.current.visibleChildName = 'secondPage';
+          }}
+        />
+      </GtkStackPage>
+      
+      <GtkStackPage 
+        name="secondPage"
+        marginStart={25}
+        marginEnd={25}
+        spacing={25}
+        valign={GtkAlign.CENTER}
+        halign={GtkAlign.CENTER}
+        orientation={GtkOrientation.VERTICAL}
+      >
+        <GtkLabel label="Second Page" />
+        <GtkButton 
+          label="Go Back"
+          onClicked={() => {
+            stackRef.current.visibleChildName = 'firstPage';
+          }}
+        />
+      </GtkStackPage>
+    </GtkStack>
+  );
+}
+```
+
+### Centered Content Page
+
+```tsx
+import { GtkStackPage, GtkLabel, GtkOrientation, GtkAlign } from 'react-gtk-renderer';
+
+function CenteredPage() {
+  return (
+    <GtkStackPage
+      name="centered"
+      orientation={GtkOrientation.VERTICAL}
+      valign={GtkAlign.CENTER}
+      halign={GtkAlign.CENTER}
+      spacing={20}
+    >
+      <GtkLabel label="This content is centered" />
+      <GtkButton label="Click Me" />
+    </GtkStackPage>
+  );
+}
+```
+
+### Form Page with Layout
+
+```tsx
+import { GtkStackPage, GtkLabel, GtkEntry, GtkButton, GtkOrientation } from 'react-gtk-renderer';
+
+function FormPage() {
+  return (
+    <GtkStackPage
+      name="form"
+      orientation={GtkOrientation.VERTICAL}
+      spacing={15}
+      marginStart={30}
+      marginEnd={30}
+      marginTop={30}
+      marginBottom={30}
+    >
+      <GtkLabel label="Enter Your Information" />
+      <GtkEntry placeholderText="Name" />
+      <GtkEntry placeholderText="Email" />
+      <GtkButton label="Submit" />
+    </GtkStackPage>
+  );
+}
+```
+
+### Horizontal Layout Page
+
+```tsx
+import { GtkStackPage, GtkButton, GtkOrientation, GtkAlign } from 'react-gtk-renderer';
+
+function HorizontalPage() {
+  return (
+    <GtkStackPage
+      name="horizontal"
+      orientation={GtkOrientation.HORIZONTAL}
+      spacing={10}
+      valign={GtkAlign.CENTER}
+      halign={GtkAlign.CENTER}
+    >
+      <GtkButton label="Option 1" />
+      <GtkButton label="Option 2" />
+      <GtkButton label="Option 3" />
+    </GtkStackPage>
+  );
+}
+```
+
+## Common Patterns
+
+### Page with Margins
+
+Apply consistent margins to all pages:
+
+```tsx
+<GtkStackPage
+  name="page"
+  marginStart={25}
+  marginEnd={25}
+  marginTop={25}
+  marginBottom={25}
+  orientation={GtkOrientation.VERTICAL}
+  spacing={15}
+>
+  {/* Page content */}
+</GtkStackPage>
+```
+
+### Reusable Page Component
+
+Create reusable page components:
+
+```tsx
+import { GtkStackPage, GtkOrientation, GtkAlign } from 'react-gtk-renderer';
+import { ReactNode } from 'react';
+
+interface PageProps {
+  name: string;
+  children: ReactNode;
+}
+
+function StandardPage({ name, children }: PageProps) {
+  return (
+    <GtkStackPage
+      name={name}
+      orientation={GtkOrientation.VERTICAL}
+      spacing={20}
+      marginStart={25}
+      marginEnd={25}
+      valign={GtkAlign.CENTER}
+      halign={GtkAlign.CENTER}
+    >
+      {children}
+    </GtkStackPage>
+  );
+}
+
+// Usage
+<GtkStack>
+  <StandardPage name="home">
+    <GtkLabel label="Home Content" />
+  </StandardPage>
+  <StandardPage name="about">
+    <GtkLabel label="About Content" />
+  </StandardPage>
+</GtkStack>
+```
+
+## Notes
+
+<Note>
+  `GtkStackPage` must be a direct child of `GtkStack`. It cannot be used outside of a stack context.
+</Note>
+
+<Note>
+  Always provide a `name` prop to enable programmatic navigation using `GtkStack.visibleChildName`.
+</Note>
+
+<Note>
+  Since `GtkStackPage` extends `GtkBox`, it inherits all box layout capabilities. Use `orientation`, `spacing`, and alignment props to control the page layout.
+</Note>

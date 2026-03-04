@@ -1,0 +1,359 @@
+---
+title: Enumerations
+description: TypeScript enums used throughout React GTK for configuring widget properties and behaviors.
+---
+
+Enumerations provide type-safe constants for various GTK+ widget properties and configuration options.
+
+## GtkAlign
+
+Controls how a widget aligns itself within its allocated space.
+
+```typescript
+enum GtkAlign {
+  FILL,      // Widget expands to fill all available space
+  START,     // Widget is aligned at the start (left/top)
+  END,       // Widget is aligned at the end (right/bottom)
+  CENTER,    // Widget is centered
+  BASELINE,  // Widget is aligned along the text baseline
+}
+```
+
+<Accordion title="Usage Example">
+  ```tsx
+  import { GtkAlign, GtkBox } from 'react-gtk';
+
+  <GtkBox halign={GtkAlign.CENTER} valign={GtkAlign.START}>
+    {/* Content */}
+  </GtkBox>
+  ```
+</Accordion>
+
+---
+
+## GtkOrientation
+
+Specifies the orientation of widgets that can be oriented horizontally or vertically.
+
+```typescript
+enum GtkOrientation {
+  HORIZONTAL,  // Horizontal orientation
+  VERTICAL,    // Vertical orientation
+}
+```
+
+<Accordion title="Usage Example">
+  ```tsx
+  import { GtkOrientation, GtkBox } from 'react-gtk';
+
+  <GtkBox orientation={GtkOrientation.VERTICAL}>
+    {/* Content stacked vertically */}
+  </GtkBox>
+  ```
+</Accordion>
+
+---
+
+## GtkStateFlags
+
+Describes the state of a widget, which affects its appearance and behavior.
+
+```typescript
+enum GtkStateFlags {
+  NORMAL,         // Normal state
+  ACTIVE,         // Widget is currently active
+  PRELIGHT,       // Widget is being hovered
+  SELECTED,       // Widget is selected
+  INSENSITIVE,    // Widget is insensitive (disabled)
+  INCONSISTENT,   // Widget has inconsistent state
+  FOCUSED,        // Widget has keyboard focus
+  BACKDROP,       // Widget is in a background window
+  DIR_LTR,        // Widget is in left-to-right text direction
+  DIR_RTL,        // Widget is in right-to-left text direction
+  LINK,           // Widget is a link
+  VISITED,        // Link has been visited
+  CHECKED,        // Widget is checked
+  DROP_ACTIVE,    // Widget is a drop target with dragged data
+  FOCUS_VISIBLE,  // Widget has visible focus indication
+  FOCUS_WITHIN,   // Widget contains focused child
+}
+```
+
+---
+
+## GtkOverflow
+
+Defines how content that is too large for its container is handled.
+
+```typescript
+enum GtkOverflow {
+  VISIBLE,  // Content is not clipped (default)
+  HIDDEN,   // Content is clipped to the container bounds
+}
+```
+
+---
+
+## GtkTextDirection
+
+Specifies the direction of text and UI elements.
+
+```typescript
+enum GtkTextDirection {
+  NONE,  // No direction set (inherits from parent)
+  LTR,   // Left-to-right text direction
+  RTL,   // Right-to-left text direction
+}
+```
+
+---
+
+## GtkDirectionType
+
+Specifies focus movement direction for keyboard navigation.
+
+```typescript
+enum GtkDirectionType {
+  TAB_FORWARD,   // Move focus to next widget
+  TAB_BACKWARD,  // Move focus to previous widget
+  UP,            // Move focus up
+  DOWN,          // Move focus down
+  LEFT,          // Move focus left
+  RIGHT,         // Move focus right
+}
+```
+
+---
+
+## GtkAccessibleRole
+
+Defines the role of a widget for accessibility purposes (ARIA roles).
+
+```typescript
+enum GtkAccessibleRole {
+  ALERT,
+  ALERT_DIALOG,
+  BANNER,
+  BUTTON,
+  CAPTION,
+  CELL,
+  CHECKBOX,
+  COLUMN_HEADER,
+  COMBO_BOX,
+  COMMAND,
+  COMPOSITE,
+  DIALOG,
+  DOCUMENT,
+  FEED,
+  FORM,
+  GENERIC,
+  GRID,
+  GRID_CELL,
+  GROUP,
+  HEADING,
+  IMG,
+  INPUT,
+  LABEL,
+  LANDMARK,
+  LEGEND,
+  LINK,
+  LIST,
+  LIST_BOX,
+  LIST_ITEM,
+  LOG,
+  MAIN,
+  MARQUEE,
+  MATH,
+  METER,
+  MENU,
+  MENU_BAR,
+  MENU_ITEM,
+  MENU_ITEM_CHECKBOX,
+  MENU_ITEM_RADIO,
+  NAVIGATION,
+  NONE,
+  NOTE,
+  OPTION,
+  PRESENTATION,
+  PROGRESS_BAR,
+  RADIO,
+  RADIO_GROUP,
+  RANGE,
+  REGION,
+  ROW,
+  ROW_GROUP,
+  ROW_HEADER,
+  SCROLLBAR,
+  SEARCH,
+  SEARCH_BOX,
+  SECTION,
+  SECTION_HEAD,
+  SELECT,
+  SEPARATOR,
+  SLIDER,
+  SPIN_BUTTON,
+  STATUS,
+  STRUCTURE,
+  SWITCH,
+  TAB,
+  TABLE,
+  TAB_LIST,
+  TAB_PANEL,
+  TEXT_BOX,
+  TIME,
+  TIMER,
+  TOOLBAR,
+  TOOLTIP,
+  TREE,
+  TREE_GRID,
+  TREE_ITEM,
+  WIDGET,
+  WINDOW,
+}
+```
+
+<Accordion title="Usage Example">
+  ```tsx
+  import { GtkAccessibleRole, GtkButton } from 'react-gtk';
+
+  <GtkButton accessibleRole={GtkAccessibleRole.BUTTON}>
+    Click me
+  </GtkButton>
+  ```
+</Accordion>
+
+---
+
+## GtkInputHints
+
+Provides hints about the expected content of a text input field.
+
+```typescript
+enum GtkInputHints {
+  NONE,                  // No special hints
+  SPELLCHECK,            // Enable spell checking
+  NO_SPELLCHECK,         // Disable spell checking
+  WORD_COMPLETION,       // Enable word completion
+  LOWERCASE,             // Prefer lowercase input
+  UPPERCASE_CHARS,       // Prefer uppercase characters
+  UPPERCASE_WORDS,       // Prefer uppercase words
+  UPPERCASE_SENTENCES,   // Prefer uppercase sentences
+  INHIBIT_OSK,           // Inhibit on-screen keyboard
+  VERTICAL_WRITING,      // Vertical writing mode
+  EMOJI,                 // Enable emoji input
+  NO_EMOJI,              // Disable emoji input
+  PRIVATE,               // Private/sensitive content
+}
+```
+
+<Accordion title="Usage Example">
+  ```tsx
+  import { GtkInputHints, GtkEntry } from 'react-gtk';
+
+  <GtkEntry inputHints={GtkInputHints.SPELLCHECK | GtkInputHints.WORD_COMPLETION} />
+  ```
+</Accordion>
+
+---
+
+## GtkInputPurpose
+
+Describes the purpose of a text input field, which can affect the on-screen keyboard layout.
+
+```typescript
+enum GtkInputPurpose {
+  FREE_FORM,  // General free-form text input
+  ALPHA,      // Alphabetic characters only
+  DIGITS,     // Digits only
+  NUMBER,     // Number input (may include decimal point)
+  PHONE,      // Phone number input
+  URL,        // URL input
+  EMAIL,      // Email address input
+  NAME,       // Person's name input
+  PASSWORD,   // Password input (hidden)
+  PIN,        // PIN input (numeric password)
+  TERMINAL,   // Terminal or command-line input
+}
+```
+
+<Accordion title="Usage Example">
+  ```tsx
+  import { GtkInputPurpose, GtkEntry } from 'react-gtk';
+
+  <GtkEntry 
+    inputPurpose={GtkInputPurpose.EMAIL}
+    placeholder="Enter your email"
+  />
+  ```
+</Accordion>
+
+---
+
+## GtkEntryIconPosition
+
+Specifies the position of an icon in a GTK entry widget.
+
+```typescript
+enum GtkEntryIconPosition {
+  PRIMARY,    // Icon at the beginning of the entry (left in LTR)
+  SECONDARY,  // Icon at the end of the entry (right in LTR)
+}
+```
+
+<Accordion title="Usage Example">
+  ```tsx
+  import { GtkEntryIconPosition, GtkEntry } from 'react-gtk';
+
+  <GtkEntry 
+    primaryIconName="search"
+    secondaryIconName="clear"
+  />
+  ```
+</Accordion>
+
+---
+
+## GtkStackTransitionType
+
+Defines the type of animation used when transitioning between pages in a GtkStack.
+
+```typescript
+enum GtkStackTransitionType {
+  NONE,                // No transition
+  CROSSFADE,           // Crossfade between pages
+  SLIDE_RIGHT,         // Slide from left to right
+  SLIDE_LEFT,          // Slide from right to left
+  SLIDE_UP,            // Slide from bottom to top
+  SLIDE_DOWN,          // Slide from top to bottom
+  SLIDE_LEFT_RIGHT,    // Slide left or right based on direction
+  SLIDE_UP_DOWN,       // Slide up or down based on direction
+  OVER_UP,             // Cover upward
+  OVER_DOWN,           // Cover downward
+  OVER_LEFT,           // Cover left
+  OVER_RIGHT,          // Cover right
+  UNDER_UP,            // Uncover upward
+  UNDER_DOWN,          // Uncover downward
+  UNDER_LEFT,          // Uncover left
+  UNDER_RIGHT,         // Uncover right
+  OVER_UP_DOWN,        // Cover up or down based on direction
+  OVER_DOWN_UP,        // Cover down or up based on direction
+  OVER_LEFT_RIGHT,     // Cover left or right based on direction
+  OVER_RIGHT_LEFT,     // Cover right or left based on direction
+  ROTATE_LEFT,         // Rotate to the left
+  ROTATE_RIGHT,        // Rotate to the right
+  ROTATE_LEFT_RIGHT,   // Rotate left or right based on direction
+}
+```
+
+<Accordion title="Usage Example">
+  ```tsx
+  import { GtkStackTransitionType, GtkStack } from 'react-gtk';
+
+  <GtkStack 
+    transitionType={GtkStackTransitionType.SLIDE_LEFT_RIGHT}
+    transitionDuration={300}
+  >
+    {/* Stack pages */}
+  </GtkStack>
+  ```
+</Accordion>

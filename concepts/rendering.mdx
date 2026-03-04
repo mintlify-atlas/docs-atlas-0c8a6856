@@ -1,0 +1,275 @@
+---
+title: Rendering
+description: Learn how React GTK renders React components to native GTK widgets and manages the rendering lifecycle
+---
+
+## Overview
+
+React GTK uses a custom React reconciler to transform React components into native GTK 4.0 widgets. This process bridges the declarative React paradigm with the imperative GTK widget system, enabling you to build desktop applications using familiar React patterns.
+
+## The Rendering Process
+
+<Steps>
+  <Step title="Create Root">
+    The rendering process begins by creating a root container using `createRoot()`, which initializes a GTK Application and React reconciler container.
+
+    ```typescript
+    import { createRoot } from 'react-gtk-renderer';
+
+    const root = createRoot({
+      id: 'com.example.myapp',
+    });
+    ```
+
+    This function creates:
+    - A `Gtk.Application` instance with your application ID
+    - A reconciler container linked to the GTK app
+    - A GLib MainLoop for event handling
+  </Step>
+
+  <Step title="Render Elements">
+    Call `render()` to mount your React tree and activate the GTK application.
+
+    ```typescript
+    root.render(<MyApp />, argv);
+    ```
+
+    When `render()` is called:
+    1. A GLib MainLoop is created
+    2. The GTK app's `activate` signal is connected
+    3. The reconciler updates the container with your React element
+    4. The application runs and enters the event loop
+  </Step>
+
+  <Step title="Component to Widget Conversion">
+    React GTK converts your JSX elements to GTK widgets through the reconciler's `createInstance()` method.
+
+    ```typescript
+    // From reconciler.ts:38-52
+    createInstance(
+      type: string,
+      props: GtkWidgetProps,
+      rootInstance: any,
+      _hostContext,
+      _instanceHandle
+    ): GtkWidgetImpl {
+      const impl = implementations[type];
+
+      if (!impl) {
+        throw new Error(`Unknown widget tag: ${type}`);
+      }
+
+      return new impl(props, rootInstance);
+    }
+    ```
+
+    Each component type (like `gtk-window`, `gtk-button`) maps to a widget implementation class.
+  </Step>
+
+  <Step title="Present Window">
+    After the React tree is mounted, the active window is automatically presented:
+
+    ```typescript
+    // From reconciler.ts:269-279
+    reconciler.updateContainer(element, root, null, function () {
+      let activeWindow: GtkWindowImpl | null = app.activeWindow;
+
+      if (!app.$windows) {
+        app.$windows = [];
+      }
+
+      if (!activeWindow && app.$windows.length) {
+        activeWindow = app.$windows[0];
+      }
+
+      activeWindow?.present();
+    });
+    ```
+  </Step>
+</Steps>
+
+## Text Rendering
+
+Text children in React GTK are automatically converted to `GtkLabel` widgets with markup support:
+
+```typescript
+// From reconciler.ts:54-61
+createTextInstance(
+  text,
+  rootInstance,
+  _hostContext,
+  _instanceHandle
+): GtkLabelImpl {
+  return new GtkLabelImpl({ label: text, useMarkup: true }, rootInstance);
+}
+```
+
+This means you can write:
+
+```jsx
+<GtkBox>
+  Hello World
+  <GtkButton>Click me</GtkButton>
+</GtkBox>
+```
+
+And "Hello World" becomes a `GtkLabel` with Pango markup enabled.
+
+<Note>
+  Text instances are created with `useMarkup: true`, allowing you to use Pango markup syntax like `<b>bold</b>` or `<i>italic</i>` directly in your text.
+</Note>
+
+## Update Lifecycle
+
+### Prop Diffing
+
+When component props change, React GTK calculates the minimal set of updates needed:
+
+```typescript
+// From reconciler.ts:104-135
+prepareUpdate(
+  _instance,
+  _type,
+  oldProps: GtkWidgetProps,
+  newProps: GtkWidgetProps,
+  _rootInstance
+): GtkWidgetProps | null {
+  const finalProps = {};
+  const mergedProps = { ...oldProps, ...newProps };
+
+  for (let prop in mergedProps) {
+    if (!mergedProps.hasOwnProperty(prop)) {
+      continue;
+    }
+
+    if (prop in oldProps && !(prop in newProps)) {
+      finalProps[prop] = null;
+    } else if (prop in newProps && !(prop in oldProps)) {
+      finalProps[prop] = newProps[prop];
+    } else if (
+      prop in oldProps &&
+      prop in newProps &&
+      oldProps[prop] !== newProps[prop]
+    ) {
+      finalProps[prop] = newProps[prop];
+    } else {
+      continue;
+    }
+  }
+
+  return Object.keys(finalProps).length > 0 ? finalProps : null;
+}
+```
+
+This function:
+- Compares old and new props
+- Identifies added, removed, or changed properties
+- Returns only the changed props (or `null` if nothing changed)
+
+### Committing Updates
+
+Once prop changes are calculated, they're applied to the native widget:
+
+```typescript
+// From reconciler.ts:63-72
+commitUpdate(
+  instance: GtkWidgetImpl,
+  updatePayload: GtkWidgetProps,
+  _type,
+  _prevProps,
+  _nextProps,
+  _internalHandle
+): void {
+  instance.updateProps(updatePayload);
+}
+```
+
+Text updates are handled separately:
+
+```typescript
+// From reconciler.ts:74-82
+commitTextUpdate(
+  textInstance: GtkLabelImpl,
+  oldText: string,
+  newText: string
+): void {
+  if (newText !== oldText) {
+    textInstance.label = newText;
+  }
+}
+```
+
+## Application Lifecycle
+
+### Activation
+
+The GTK application activates when `run()` is called. This connects to the `activate` signal and updates the reconciler container:
+
+```typescript
+app.connect('activate', () => {
+  reconciler.updateContainer(element, root, null, function () {
+    // Present the active window
+  });
+});
+```
+
+### Window Management
+
+React GTK tracks all windows in the application. When a window closes, it checks if any windows remain visible:
+
+```typescript
+// From gtk-window.ts:55-67
+this.nativeInstance.connect('close-request', () => {
+  this.nativeInstance.visible = false;
+
+  const activeAppWindows = rootInstance.$windows.filter(
+    (win: GtkWindowImpl) => win.visible
+  );
+
+  if (activeAppWindows.length === 0) {
+    rootInstance.loop.quit();
+  }
+
+  return true;
+});
+```
+
+When no visible windows remain, the GLib MainLoop quits and the application exits.
+
+<Warning>
+  The rendering system is designed for GTK 4.0 specifically. Ensure your environment has GTK 4.0 installed and configured.
+</Warning>
+
+## Example: Complete Rendering Flow
+
+Here's a complete example showing the rendering flow:
+
+```tsx
+import { createRoot, GtkWindow, GtkButton } from 'react-gtk-renderer';
+import { useState } from 'react';
+
+function MyApp() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <GtkWindow defaultHeight={400} defaultWidth={600} title="Counter App">
+      <GtkButton onClicked={() => setCount(count + 1)}>
+        Clicked {count} times
+      </GtkButton>
+    </GtkWindow>
+  );
+}
+
+const root = createRoot({ id: 'com.example.counter' });
+root.render(<MyApp />);
+```
+
+**What happens:**
+
+1. `createRoot()` creates a GTK Application and reconciler container
+2. `render()` starts the GTK application and enters the event loop
+3. On `activate`, the reconciler creates a `GtkWindowImpl` instance
+4. The `GtkButton` is created as a child of the window
+5. When clicked, React updates the button's label text
+6. The reconciler calculates the prop diff (label changed)
+7. The native GTK button widget is updated with the new label

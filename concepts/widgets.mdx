@@ -1,0 +1,467 @@
+---
+title: Widgets
+description: Understand the GTK widget system and how widgets map to React components in React GTK
+---
+
+## Widget System Overview
+
+In React GTK, every visual element is a GTK widget. The library provides React components that wrap native GTK 4.0 widgets, allowing you to build desktop UIs using JSX syntax while leveraging the full power of GTK.
+
+## Widget Architecture
+
+Each widget in React GTK consists of three parts:
+
+1. **Widget Tag** - A string identifier (e.g., `'gtk-window'`, `'gtk-button'`)
+2. **Implementation Class** - Extends `GtkWidgetImpl` and manages the native GTK instance
+3. **React Component** - Created using `createReactComponent()` for use in JSX
+
+### Base Widget Class
+
+All widgets inherit from `GtkWidgetImpl`, which provides common functionality:
+
+```typescript
+// From gtk-widget.ts:332-345
+export abstract class GtkWidgetImpl {
+  public nativeInstance: any;
+
+  constructor(props: GtkWidgetProps, rootInstance: any) {
+    this.nativeInstance = new Gtk[this.nativeName]();
+    this.nativeInstance.$root = rootInstance;
+    this.nativeInstance.$impl = this;
+    this.updateProps(props);
+  }
+
+  get nativeName(): string {
+    return 'Widget';
+  }
+}
+```
+
+Key features:
+- `nativeInstance`: The actual GTK widget object
+- `nativeName`: The GTK widget type (e.g., `'Window'`, `'Button'`)
+- `updateProps()`: Applies React props to the native widget
+
+## Available Widgets
+
+React GTK currently provides the following widgets:
+
+<Accordion title="GtkWindow - Application Windows">
+  Top-level window widget for your application.
+
+  ```typescript
+  // From gtk-window.ts:10-35
+  export interface GtkWindowProps extends GtkWidgetProps {
+    defaultHeight?: number;
+    defaultWidth?: number;
+    title?: string;
+    modal?: boolean;
+    children?: ReactElement | string;
+  }
+  ```
+
+  **Example:**
+  ```jsx
+  <GtkWindow defaultHeight={600} defaultWidth={800} title="My App">
+    {/* Window content */}
+  </GtkWindow>
+  ```
+
+  **Unique behavior:**
+  - Automatically registered in `rootInstance.$windows` array
+  - Quits app when all windows are closed
+  - Supports single child element
+</Accordion>
+
+<Accordion title="GtkBox - Layout Container">
+  Container widget that arranges children in a single row or column.
+
+  ```typescript
+  // From gtk-box.ts:11-31
+  export interface GtkBoxProps extends GtkWidgetProps {
+    orientation?: GtkOrientation;
+    homogeneous?: boolean;
+    spacing?: number;
+    children?: ReactNode;
+  }
+  ```
+
+  **Example:**
+  ```jsx
+  <GtkBox orientation={GtkOrientation.VERTICAL} spacing={10}>
+    <GtkLabel label="First" />
+    <GtkLabel label="Second" />
+  </GtkBox>
+  ```
+
+  **Child management:**
+  - `appendChild()`: Uses `nativeInstance.append()`
+  - `removeChild()`: Uses `nativeInstance.remove()`
+  - `insertBefore()`: Uses `insert_child_after()` then `reorder_child_after()`
+</Accordion>
+
+<Accordion title="GtkButton - Clickable Buttons">
+  Interactive button widget with label or custom content.
+
+  ```typescript
+  // From gtk-button.ts:10-55
+  export interface GtkButtonProps extends GtkWidgetProps {
+    label?: string;
+    iconName?: string;
+    hasFrame?: boolean;
+    useUnderline?: boolean;
+    actionName?: string;
+    actionTarget?: any;
+    children?: ReactElement | string;
+    onActivate?: (self: GtkButtonImpl) => void;
+    onClicked?: (self: GtkButtonImpl) => void;
+  }
+  ```
+
+  **Example:**
+  ```jsx
+  <GtkButton onClicked={() => console.log('Clicked!')}>
+    Click Me
+  </GtkButton>
+  ```
+
+  **Events:**
+  - `onClicked`: Fired when button is pressed and released
+  - `onActivate`: Animated press-then-release event
+</Accordion>
+
+<Accordion title="GtkLabel - Text Display">
+  Non-interactive text display widget.
+
+  ```typescript
+  // From gtk-label.ts:9-21
+  export interface GtkLabelProps extends GtkWidgetProps {
+    label: string;
+    useMarkup?: boolean;
+  }
+  ```
+
+  **Example:**
+  ```jsx
+  <GtkLabel label="Hello World" useMarkup={true} />
+  ```
+
+  **Markup support:**
+  When `useMarkup` is true, you can use Pango markup:
+  ```jsx
+  <GtkLabel 
+    label="<b>Bold</b> and <i>italic</i>" 
+    useMarkup={true} 
+  />
+  ```
+</Accordion>
+
+<Accordion title="GtkEntry - Text Input">
+  Single-line text entry widget.
+
+  ```typescript
+  // From gtk-entry.ts:18-123
+  export interface GtkEntryProps extends GtkWidgetProps {
+    activatesDefault?: boolean;
+    attributes?: PangoAttrItem[];
+    enableEmojiCompletion?: boolean;
+    hasFrame?: boolean;
+    inputHints?: GtkInputHints;
+    inputPurpose?: GtkInputPurpose;
+    maxLength?: number;
+    placeholderText?: string;
+    onActivate?: (self: GtkEntryImpl) => void;
+    onChanged?: (self: GtkEntryImpl) => void;
+    onInsertText?: (self: GtkEntryImpl, text: string, length: number, position: number) => void;
+    onDeleteText?: (self: GtkEntryImpl, start: number, end: number) => void;
+  }
+  ```
+
+  **Example:**
+  ```jsx
+  <GtkEntry
+    placeholderText="Enter text..."
+    onChanged={(entry) => console.log(entry.text)}
+  />
+  ```
+
+  **Text buffer:**
+  Access the entry's text buffer for advanced operations:
+  ```typescript
+  const entryRef = useRef<GtkEntryImpl>();
+  
+  entryRef.current.buffer.text = 'Hello';
+  entryRef.current.buffer.insert_text(5, ' World', -1);
+  ```
+</Accordion>
+
+<Accordion title="GtkStack - Multi-page Container">
+  Container that shows one child at a time with transitions.
+
+  ```typescript
+  // From gtk-stack.ts:12-42
+  export interface GtkStackProps extends GtkWidgetProps {
+    transitionType?: GtkStackTransitionType;
+    transitionDuration?: number;
+    hhomogeneous?: boolean;
+    vhomogeneous?: boolean;
+    interpolateSize?: boolean;
+    children?: ReactNode;
+  }
+  ```
+
+  **Example:**
+  ```jsx
+  <GtkStack transitionType={GtkStackTransitionType.SLIDE_RIGHT}>
+    <GtkStackPage name="page1">
+      <GtkLabel label="Page 1" />
+    </GtkStackPage>
+    <GtkStackPage name="page2">
+      <GtkLabel label="Page 2" />
+    </GtkStackPage>
+  </GtkStack>
+  ```
+
+  **Navigation:**
+  ```typescript
+  const stackRef = useRef<GtkStackImpl>();
+  
+  // Change visible page by name
+  stackRef.current.visibleChildName = 'page2';
+  ```
+</Accordion>
+
+## Widget Hierarchy
+
+Widgets form a parent-child hierarchy, similar to the DOM:
+
+```
+GtkWindow (root)
+└── GtkBox
+    ├── GtkLabel
+    ├── GtkEntry
+    └── GtkButton
+        └── GtkLabel (button label)
+```
+
+### Parent-Child Relationships
+
+Each widget implementation defines how it manages children:
+
+```typescript
+// From gtk-box.ts:54-82
+export class GtkBoxImpl extends GtkWidgetImpl {
+  appendChild(child: GtkWidgetImpl): void {
+    this.nativeInstance.append(child.nativeInstance);
+  }
+
+  removeChild(child: GtkWidgetImpl): void {
+    this.nativeInstance.remove(child.nativeInstance);
+  }
+
+  insertBefore(child: GtkWidgetImpl, beforeChild: GtkWidgetImpl): void {
+    const childNativeInstance = child.nativeInstance;
+    const beforeChildNativeInstance = beforeChild.nativeInstance;
+
+    this.nativeInstance.insert_child_after(
+      childNativeInstance,
+      beforeChildNativeInstance,
+    );
+
+    this.nativeInstance.reorder_child_after(
+      beforeChildNativeInstance,
+      childNativeInstance,
+    );
+  }
+}
+```
+
+<Note>
+  Not all widgets support multiple children. For example, `GtkWindow` and `GtkButton` only support a single child.
+</Note>
+
+## Props System
+
+Widget props are divided into two categories:
+
+### 1. Properties
+
+Direct mappings to GTK widget properties:
+
+```jsx
+<GtkWindow 
+  title="My App"          // Maps to native 'title' property
+  defaultWidth={800}      // Maps to native 'defaultWidth' property
+  visible={true}          // Maps to native 'visible' property
+/>
+```
+
+### 2. Event Handlers (Signals)
+
+Props starting with `on` are treated as GTK signal handlers:
+
+```typescript
+// From gtk-widget.ts:412-467
+updateProps(props: GtkWidgetProps): void {
+  const signals: {
+    name: string;
+    handler: (self: any, ...args: any[]) => any | null;
+  }[] = [];
+
+  for (let prop in props) {
+    if (!props.hasOwnProperty(prop) || prop === 'children') {
+      continue;
+    }
+
+    const value = props[prop];
+
+    if (isSignal(prop)) {
+      signals.push({
+        name: toKebabCase(prop),
+        handler: value,
+      });
+    } else {
+      this.nativeInstance[prop] = value;
+    }
+  }
+
+  // Connect signal handlers...
+  signals.forEach(({ name, handler }) => {
+    if (typeof this.nativeInstance.$signals[name] !== 'undefined') {
+      this.nativeInstance.disconnect(this.nativeInstance.$signals[name]);
+      delete this.nativeInstance.$signals[name];
+    }
+
+    if (typeof handler === 'function') {
+      this.nativeInstance.$signals[name] = this.nativeInstance.connect(
+        name,
+        (self: any, ...args: any[]) => {
+          if (self?.$impl instanceof GtkWidgetImpl) {
+            self = self.$impl;
+          }
+          return handler(self, ...args);
+        }
+      );
+    }
+  });
+}
+```
+
+Signal names are automatically converted from camelCase to kebab-case:
+- `onClicked` → `clicked`
+- `onStateFlagsChanged` → `state-flags-changed`
+
+## Common Widget Props
+
+All widgets inherit these props from `GtkWidgetProps`:
+
+```typescript
+interface GtkWidgetProps {
+  // Visibility
+  visible?: boolean;
+  
+  // Alignment
+  halign?: GtkAlign;
+  valign?: GtkAlign;
+  
+  // Margins
+  marginStart?: number;
+  marginEnd?: number;
+  marginTop?: number;
+  marginBottom?: number;
+  
+  // Size
+  widthRequest?: number;
+  heightRequest?: number;
+  hexpand?: boolean;
+  vexpand?: boolean;
+  
+  // Focus
+  canFocus?: boolean;
+  focusable?: boolean;
+  hasFocus?: boolean;
+  focusOnClick?: boolean;
+  
+  // Styling
+  cssClasses?: string[];
+  opacity?: number;
+  cursor?: string;
+  
+  // Other
+  name?: string;
+  sensitive?: boolean;
+  tooltipText?: string;
+  tooltipMarkup?: string;
+}
+```
+
+<Info>
+  See the [API Reference](/api/components/gtk-window) for complete prop documentation for each widget.
+</Info>
+
+## Creating React Components
+
+Widgets are converted to React components using `createReactComponent()`:
+
+```typescript
+// From create-react-component.ts:7-15
+export const createReactComponent = <
+  TImpl extends GtkWidgetImpl,
+  TProps extends GtkWidgetProps
+>(
+  widgetTag: string
+) =>
+  forwardRef<TImpl, TProps>((props, ref) =>
+    createElement(widgetTag, { ref, ...props })
+  );
+```
+
+This creates a React component that:
+- Supports ref forwarding to access the widget implementation
+- Passes all props to the reconciler
+- Uses the widget tag for reconciler lookup
+
+Example usage:
+
+```typescript
+export const GtkButton = createReactComponent<GtkButtonImpl, GtkButtonProps>(
+  GTK_BUTTON_TAG
+);
+```
+
+## Widget Lifecycle
+
+### Creation
+
+1. React reconciler calls `createInstance()` with widget tag
+2. Implementation class constructor is called
+3. Native GTK widget is instantiated
+4. Props are applied via `updateProps()`
+
+### Updates
+
+1. React detects prop changes
+2. Reconciler calls `prepareUpdate()` to diff props
+3. Reconciler calls `commitUpdate()` with changed props
+4. `updateProps()` applies changes to native widget
+
+### Cleanup
+
+1. Widget is removed from React tree
+2. Reconciler calls `removeChild()` on parent
+3. Reconciler calls `detachDeletedInstance()`
+4. Widget's `detach()` method is called:
+
+```typescript
+// From gtk-widget.ts:502-507
+detach(): void {
+  try {
+    this.unparent();
+    this.unrealize();
+  } catch (_) {}
+}
+```
+
+<Warning>
+  Always use refs to access widget instances. Directly manipulating native GTK objects outside of React's control can cause issues.
+</Warning>

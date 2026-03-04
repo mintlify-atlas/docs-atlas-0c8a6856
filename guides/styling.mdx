@@ -1,0 +1,471 @@
+---
+title: Styling and Layout
+description: Style GTK widgets and control layout in React GTK applications
+---
+
+## Overview
+
+React GTK uses GTK's native styling system rather than CSS. Widgets are styled through props that control appearance, layout, spacing, and alignment.
+
+## Layout Fundamentals
+
+### Container Widgets
+
+Layout is managed by container widgets like `GtkBox` and `GtkStackPage`:
+
+- `GtkBox` - Linear container for horizontal or vertical layouts
+- `GtkStackPage` - Page container that extends `GtkBox`
+- `GtkWindow` - Top-level container for windows
+
+### Orientation
+
+Control layout direction with the `orientation` prop:
+
+```tsx
+import { GtkBox, GtkOrientation, GtkButton } from 'react-gtk-renderer';
+
+// Vertical stack
+<GtkBox orientation={GtkOrientation.VERTICAL}>
+  <GtkButton label="Button 1" />
+  <GtkButton label="Button 2" />
+  <GtkButton label="Button 3" />
+</GtkBox>
+
+// Horizontal row
+<GtkBox orientation={GtkOrientation.HORIZONTAL}>
+  <GtkButton label="Left" />
+  <GtkButton label="Center" />
+  <GtkButton label="Right" />
+</GtkBox>
+```
+
+## Spacing and Margins
+
+### Container Spacing
+
+Set spacing between children in container widgets:
+
+```tsx
+<GtkBox orientation={GtkOrientation.VERTICAL} spacing={25}>
+  <GtkLabel label="Item 1" />
+  <GtkLabel label="Item 2" />
+  <GtkLabel label="Item 3" />
+</GtkBox>
+```
+
+### Widget Margins
+
+Control margins on individual widgets:
+
+```tsx
+import { GtkStackPage, GtkAlign } from 'react-gtk-renderer';
+
+<GtkStackPage
+  name="page1"
+  marginStart={25}
+  marginEnd={25}
+  marginTop={20}
+  marginBottom={20}
+  orientation={GtkOrientation.VERTICAL}>
+  {/* Content with margins */}
+</GtkStackPage>
+```
+
+#### Margin Properties
+
+- `marginStart` - Left margin (in LTR layouts)
+- `marginEnd` - Right margin (in LTR layouts)
+- `marginTop` - Top margin
+- `marginBottom` - Bottom margin
+
+## Alignment
+
+### Horizontal and Vertical Alignment
+
+Control widget positioning within their allocated space:
+
+```tsx
+import { GtkBox, GtkAlign, GtkOrientation } from 'react-gtk-renderer';
+
+<GtkBox
+  orientation={GtkOrientation.VERTICAL}
+  halign={GtkAlign.CENTER}
+  valign={GtkAlign.CENTER}>
+  <GtkLabel label="Centered content" />
+</GtkBox>
+```
+
+### Alignment Options
+
+```tsx
+import { GtkAlign } from 'react-gtk-renderer';
+
+// Available alignment values:
+GtkAlign.FILL      // Stretch to fill available space
+GtkAlign.START     // Align to start (top/left)
+GtkAlign.END       // Align to end (bottom/right)
+GtkAlign.CENTER    // Center in available space
+GtkAlign.BASELINE  // Align baselines (for text)
+```
+
+### Example: Centered Dialog Content
+
+```tsx
+<GtkStackPage
+  name="dialog"
+  marginStart={25}
+  marginEnd={25}
+  spacing={25}
+  valign={GtkAlign.CENTER}
+  halign={GtkAlign.CENTER}
+  orientation={GtkOrientation.VERTICAL}>
+  <GtkLabel label="Are you sure?" />
+  <GtkButton label="Confirm" />
+  <GtkButton label="Cancel" />
+</GtkStackPage>
+```
+
+## Widget Dimensions
+
+### Window Size
+
+Set default window dimensions:
+
+```tsx
+<GtkWindow
+  defaultHeight={600}
+  defaultWidth={800}
+  title="My Application">
+  {/* Content */}
+</GtkWindow>
+```
+
+### Widget Size Requests
+
+Override widget size requests:
+
+```tsx
+<GtkButton
+  heightRequest={50}
+  widthRequest={200}
+  label="Large Button"
+/>
+```
+
+## Expanding Widgets
+
+### Horizontal and Vertical Expansion
+
+Control whether widgets expand to fill available space:
+
+```tsx
+<GtkBox orientation={GtkOrientation.HORIZONTAL}>
+  <GtkButton label="Fixed" />
+  <GtkButton label="Expands" hexpand />
+  <GtkButton label="Also Expands" hexpand />
+</GtkBox>
+```
+
+#### Expansion Properties
+
+- `hexpand` - Expand horizontally
+- `vexpand` - Expand vertically
+- `hexpandSet` - Whether to use `hexpand` property
+- `vexpandSet` - Whether to use `vexpand` property
+
+## Homogeneous Layouts
+
+Make all children the same size:
+
+```tsx
+<GtkBox
+  orientation={GtkOrientation.HORIZONTAL}
+  homogeneous>
+  <GtkButton label="Equal" />
+  <GtkButton label="Width" />
+  <GtkButton label="Buttons" />
+</GtkBox>
+```
+
+## Widget Appearance
+
+### Button Styling
+
+```tsx
+<GtkButton
+  label="Styled Button"
+  hasFrame={false}
+  useUnderline
+/>
+```
+
+#### Button Properties
+
+- `hasFrame` - Whether the button has a visible border
+- `useUnderline` - Enable mnemonic underlines
+- `iconName` - Add an icon to the button
+
+### Entry Styling
+
+```tsx
+<GtkEntry
+  placeholderText="Enter text..."
+  hasFrame
+  maxLength={100}
+/>
+```
+
+#### Entry Properties
+
+- `hasFrame` - Whether to draw a border
+- `placeholderText` - Placeholder text when empty
+- `maxLength` - Maximum text length
+
+## Text Styling with Pango
+
+Style text using Pango attributes:
+
+```tsx
+import { GtkEntry } from 'react-gtk-renderer';
+
+<GtkEntry
+  attributes={[
+    {
+      start: 0,
+      end: 5,
+      type: 'foreground',
+      value: 'red',
+    },
+    {
+      start: 5,
+      end: 11,
+      type: 'weight',
+      value: 'bold',
+    },
+  ]}
+/>
+```
+
+### Pango Attribute Types
+
+- `foreground` - Text color
+- `weight` - Font weight (bold, normal, etc.)
+- `size` - Font size
+- `style` - Font style (italic, normal)
+- `underline` - Underline style
+
+### Label Markup
+
+Use Pango markup for rich text in labels:
+
+```tsx
+<GtkLabel
+  label="<b>Bold</b> and <i>italic</i> text"
+  useMarkup
+/>
+```
+
+## CSS Classes
+
+Apply GTK CSS classes for theming:
+
+```tsx
+<GtkButton
+  label="Suggested Action"
+  cssClasses={['suggested-action']}
+/>
+
+<GtkButton
+  label="Destructive Action"
+  cssClasses={['destructive-action']}
+/>
+```
+
+### Common GTK CSS Classes
+
+- `suggested-action` - Highlighted action button
+- `destructive-action` - Destructive action (usually red)
+- `flat` - Flat button style
+- `circular` - Circular button
+- `pill` - Pill-shaped button
+
+## Visibility Control
+
+Show or hide widgets:
+
+```tsx
+import { useState } from 'react';
+
+function ConditionalWidget() {
+  const [isVisible, setIsVisible] = useState(true);
+
+  return (
+    <>
+      <GtkButton onClicked={() => setIsVisible(!isVisible)}>
+        Toggle Visibility
+      </GtkButton>
+      <GtkLabel label="Toggle me" visible={isVisible} />
+    </>
+  );
+}
+```
+
+## Opacity
+
+Control widget transparency:
+
+```tsx
+<GtkButton
+  label="50% Opacity"
+  opacity={0.5}
+/>
+```
+
+## Cursor
+
+Change the cursor on hover:
+
+```tsx
+<GtkButton
+  label="Clickable"
+  cursor="pointer"
+/>
+
+<GtkBox cursor="not-allowed">
+  <GtkLabel label="Disabled area" />
+</GtkBox>
+```
+
+### Cursor Values
+
+Common cursor types:
+- `default`, `pointer`, `text`, `wait`, `crosshair`
+- `help`, `move`, `grab`, `grabbing`
+- `not-allowed`, `no-drop`
+- `n-resize`, `e-resize`, `s-resize`, `w-resize`
+- `zoom-in`, `zoom-out`
+
+## Sensitivity
+
+Disable widget interaction:
+
+```tsx
+<GtkButton
+  label="Disabled"
+  sensitive={false}
+/>
+```
+
+## Focus Behavior
+
+```tsx
+<GtkButton
+  label="Can Focus"
+  canFocus
+  focusable
+  focusOnClick
+/>
+```
+
+#### Focus Properties
+
+- `canFocus` - Widget or descendants can accept focus
+- `focusable` - Widget itself can accept focus
+- `focusOnClick` - Grab focus on mouse click
+- `hasFocus` - Whether widget has focus
+
+## Tooltips
+
+Add helpful tooltips:
+
+```tsx
+<GtkButton
+  label="Hover me"
+  tooltipText="This is a helpful tooltip"
+  hasTooltip
+/>
+
+<GtkButton
+  label="With markup"
+  tooltipMarkup="<b>Bold</b> tooltip text"
+  hasTooltip
+/>
+```
+
+## Overflow Control
+
+```tsx
+import { GtkOverflow } from 'react-gtk-renderer';
+
+<GtkBox overflow={GtkOverflow.HIDDEN}>
+  {/* Content will be clipped */}
+</GtkBox>
+```
+
+## Transitions
+
+Animate page transitions in stacks:
+
+```tsx
+import { GtkStack, GtkStackTransitionType } from 'react-gtk-renderer';
+
+<GtkStack transitionType={GtkStackTransitionType.SLIDE_RIGHT} transitionDuration={300}>
+  {/* Pages with smooth transitions */}
+</GtkStack>
+```
+
+### Transition Types
+
+Available in `GtkStackTransitionType`:
+- `SLIDE_RIGHT` / `SLIDE_LEFT`
+- `SLIDE_UP` / `SLIDE_DOWN`
+- `CROSSFADE`
+- `ROTATE_LEFT` / `ROTATE_RIGHT`
+
+## Complete Layout Example
+
+```tsx
+import {
+  GtkWindow,
+  GtkBox,
+  GtkStackPage,
+  GtkLabel,
+  GtkButton,
+  GtkOrientation,
+  GtkAlign,
+} from 'react-gtk-renderer';
+
+export function StyledApp() {
+  return (
+    <GtkWindow defaultHeight={600} defaultWidth={800} title="Styled App">
+      <GtkStackPage
+        name="main"
+        marginStart={40}
+        marginEnd={40}
+        marginTop={40}
+        marginBottom={40}
+        spacing={20}
+        valign={GtkAlign.CENTER}
+        halign={GtkAlign.CENTER}
+        orientation={GtkOrientation.VERTICAL}>
+        <GtkLabel
+          label="<big><b>Welcome</b></big>"
+          useMarkup
+        />
+
+        <GtkBox orientation={GtkOrientation.HORIZONTAL} spacing={10}>
+          <GtkButton
+            label="Primary"
+            cssClasses={['suggested-action']}
+            hexpand
+          />
+          <GtkButton
+            label="Secondary"
+            hexpand
+          />
+        </GtkBox>
+      </GtkStackPage>
+    </GtkWindow>
+  );
+}
+```

@@ -1,0 +1,188 @@
+---
+title: GtkLabel
+description: A widget that displays a small to medium amount of text
+---
+
+`GtkLabel` is a widget that displays text. It supports plain text and Pango markup for rich text formatting.
+
+## Props
+
+<ParamField path="label" type="string" required>
+  The text content to display in the label.
+</ParamField>
+
+<ParamField path="useMarkup" type="boolean">
+  If `true`, the label text is parsed as Pango markup, allowing for rich text formatting like bold, italic, colors, etc.
+  
+  See [Pango Markup Documentation](https://docs.gtk.org/Pango/pango_markup.html) for available markup tags.
+  
+  Default: `false`
+</ParamField>
+
+### Inherited Props
+
+`GtkLabel` extends [`GtkWidget`](/api/components/gtk-widget) and inherits all its props including layout, styling, and event handling properties.
+
+## Usage
+
+### Basic Label
+
+```tsx
+import { GtkLabel } from 'react-gtk-renderer';
+
+function Welcome() {
+  return <GtkLabel label="Hello World" />;
+}
+```
+
+### Rich Text with Pango Markup
+
+Use Pango markup for styled text:
+
+```tsx
+import { GtkLabel } from 'react-gtk-renderer';
+
+function StyledText() {
+  return (
+    <GtkLabel 
+      label="<b>Bold</b> and <i>Italic</i> text"
+      useMarkup
+    />
+  );
+}
+```
+
+### Colored Text
+
+```tsx
+import { GtkLabel } from 'react-gtk-renderer';
+
+function ColoredLabel() {
+  return (
+    <GtkLabel 
+      label='<span foreground="red">Error:</span> Something went wrong'
+      useMarkup
+    />
+  );
+}
+```
+
+### Multi-line Text
+
+```tsx
+import { GtkLabel } from 'react-gtk-renderer';
+
+function MultiLineLabel() {
+  return (
+    <GtkLabel 
+      label={`Line 1
+Line 2
+Line 3`}
+    />
+  );
+}
+```
+
+### Dynamic Content
+
+Labels can display dynamic content:
+
+```tsx
+import { GtkLabel } from 'react-gtk-renderer';
+import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  
+  return (
+    <>
+      <GtkLabel label={`Count: ${count}`} />
+      <GtkButton onClicked={() => setCount(count + 1)}>
+        Increment
+      </GtkButton>
+    </>
+  );
+}
+```
+
+## Pango Markup Examples
+
+### Text Formatting
+
+```tsx
+// Bold
+<GtkLabel label="<b>Bold text</b>" useMarkup />
+
+// Italic
+<GtkLabel label="<i>Italic text</i>" useMarkup />
+
+// Underline
+<GtkLabel label="<u>Underlined text</u>" useMarkup />
+
+// Strikethrough
+<GtkLabel label="<s>Strikethrough text</s>" useMarkup />
+
+// Combined
+<GtkLabel label="<b><i>Bold and Italic</i></b>" useMarkup />
+```
+
+### Font Sizing
+
+```tsx
+// Large text
+<GtkLabel label='<span size="large">Large Text</span>' useMarkup />
+
+// Small text
+<GtkLabel label='<span size="small">Small Text</span>' useMarkup />
+
+// Specific size (in points)
+<GtkLabel label='<span size="20000">20pt Text</span>' useMarkup />
+```
+
+### Colors
+
+```tsx
+// Foreground color
+<GtkLabel 
+  label='<span foreground="#FF0000">Red text</span>' 
+  useMarkup 
+/>
+
+// Background color
+<GtkLabel 
+  label='<span background="yellow">Highlighted</span>' 
+  useMarkup 
+/>
+```
+
+## Instance Properties
+
+When using a ref, you can access these properties on the `GtkLabelImpl` instance:
+
+### label
+
+Get or set the label text programmatically:
+
+```tsx
+import { useRef, useEffect } from 'react';
+
+const labelRef = useRef<GtkLabelImpl>();
+
+useEffect(() => {
+  // Get current text
+  console.log(labelRef.current.label);
+  
+  // Set new text
+  labelRef.current.label = "Updated text";
+}, []);
+```
+
+## Notes
+
+<Note>
+  When using Pango markup, make sure to set `useMarkup={true}` or the markup tags will be displayed as plain text.
+</Note>
+
+<Warning>
+  Pango markup size values are specified in 1/1024ths of a point. For example, to set 20pt text, use `size="20000"`.
+</Warning>

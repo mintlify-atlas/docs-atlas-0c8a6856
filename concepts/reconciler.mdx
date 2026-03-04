@@ -1,0 +1,618 @@
+---
+title: React Reconciler
+description: Deep dive into the React reconciler implementation that bridges React and GTK
+---
+
+## What is a Reconciler?
+
+A React reconciler is the core engine that manages the component tree and determines how to render components to a specific platform. While React DOM renders to the browser DOM and React Native renders to mobile platforms, React GTK uses a custom reconciler to render to GTK widgets.
+
+## Reconciler Configuration
+
+React GTK's reconciler is built using the `react-reconciler` package with a specific configuration:
+
+```typescript
+// From reconciler.ts:27-37
+const reconciler = ReactReconciler({
+  noTimeout: -1,
+  supportsMutation: true,
+  isPrimaryRenderer: true,
+  supportsHydration: false,
+  supportsPersistence: false,
+  // ... host config methods
+});
+```
+
+### Configuration Flags
+
+- **`supportsMutation: true`** - The renderer supports mutating the tree (adding/removing/updating widgets)
+- **`isPrimaryRenderer: true`** - This is the primary renderer for the application
+- **`supportsHydration: false`** - No server-side rendering or hydration support
+- **`supportsPersistence: false`** - The renderer doesn't use persistent data structures
+
+## Widget Type Registry
+
+The reconciler maintains a registry mapping widget tags to implementation classes:
+
+```typescript
+// From reconciler.ts:17-25
+const implementations = {
+  [GTK_WINDOW_TAG]: GtkWindowImpl,
+  [GTK_LABEL_TAG]: GtkLabelImpl,
+  [GTK_BOX_TAG]: GtkBoxImpl,
+  [GTK_BUTTON_TAG]: GtkButtonImpl,
+  [GTK_ENTRY_TAG]: GtkEntryImpl,
+  [GTK_STACK_TAG]: GtkStackImpl,
+  [GTK_STACK_PAGE_TAG]: GtkStackPageImpl,
+};
+```
+
+When you write `<GtkButton />` in JSX, React creates an element with type `'gtk-button'`, which the reconciler looks up in this registry.
+
+## Core Reconciler Methods
+
+### Instance Creation
+
+#### createInstance
+
+Called when React needs to create a new widget instance:
+
+```typescript
+// From reconciler.ts:38-52
+createInstance(
+  type: string,
+  props: GtkWidgetProps,
+  rootInstance: any,
+  _hostContext,
+  _instanceHandle
+): GtkWidgetImpl {
+  const impl = implementations[type];
+
+  if (!impl) {
+    throw new Error(`Unknown widget tag: ${type}`);
+  }
+
+  return new impl(props, rootInstance);
+}
+```
+
+**Parameters:**
+- `type`: Widget tag string (e.g., `'gtk-button'`)
+- `props`: Component props from JSX
+- `rootInstance`: The GTK Application instance
+
+**Returns:** A `GtkWidgetImpl` instance wrapping the native GTK widget
+
+<Note>
+  The `rootInstance` is passed to every widget so they can access the GTK Application and shared state like the window list.
+</Note>
+
+#### createTextInstance
+
+Called when React encounters a text node:
+
+```typescript
+// From reconciler.ts:54-61
+createTextInstance(
+  text,
+  rootInstance,
+  _hostContext,
+  _instanceHandle
+): GtkLabelImpl {
+  return new GtkLabelImpl({ label: text, useMarkup: true }, rootInstance);
+}
+```
+
+Text nodes are automatically converted to `GtkLabel` widgets with Pango markup enabled. This allows you to write:
+
+```jsx
+<GtkBox>
+  <b>Bold text</b> and normal text
+</GtkBox>
+```
+
+### Tree Mutation
+
+#### appendChild / appendInitialChild
+
+Adds a child to a parent widget:
+
+```typescript
+// From reconciler.ts:149-163
+appendInitialChild(parentInstance: any, child: unknown): void {
+  if (parentInstance instanceof Gtk.Application) {
+    return;
+  }
+
+  (parentInstance as GtkWidgetImpl).appendChild(child as GtkWidgetImpl);
+}
+
+appendChildToContainer(parentInstance: any, child: unknown): void {
+  if (parentInstance instanceof Gtk.Application) {
+    return;
+  }
+
+  (parentInstance as GtkWidgetImpl).appendChild(child as GtkWidgetImpl);
+}
+```
+
+<Info>
+  The reconciler skips appending children to the root `Gtk.Application` since it's not a widget container. Only `GtkWindow` instances are tracked separately.
+</Info>
+
+#### removeChild / removeChildFromContainer
+
+Removes a child from a parent widget:
+
+```typescript
+// From reconciler.ts:169-183
+removeChild(parentInstance: any, child: GtkWidgetImpl): void {
+  if (parentInstance instanceof Gtk.Application) {
+    return;
+  }
+
+  (parentInstance as GtkWidgetImpl).removeChild(child);
+}
+
+removeChildFromContainer(parentInstance, child: GtkWidgetImpl): void {
+  if (parentInstance instanceof Gtk.Application) {
+    return;
+  }
+
+  (parentInstance as GtkWidgetImpl).removeChild(child);
+}
+```
+
+#### insertBefore
+
+Inserts a child before another child:
+
+```typescript
+// From reconciler.ts:185-198
+insertBefore(
+  parentInstance: unknown,
+  child: unknown,
+  beforeChild: unknown
+): void {
+  if (parentInstance instanceof Gtk.Application) {
+    return;
+  }
+
+  (parentInstance as GtkWidgetImpl).insertBefore(
+    child as GtkWidgetImpl,
+    beforeChild as GtkWidgetImpl
+  );
+}
+```
+
+This is used when React needs to insert elements at specific positions, such as when list items are reordered.
+
+### Update Handling
+
+#### prepareUpdate
+
+Calculates which props have changed:
+
+```typescript
+// From reconciler.ts:104-135
+prepareUpdate(
+  _instance,
+  _type,
+  oldProps: GtkWidgetProps,
+  newProps: GtkWidgetProps,
+  _rootInstance
+): GtkWidgetProps | null {
+  const finalProps = {};
+  const mergedProps = { ...oldProps, ...newProps };
+
+  for (let prop in mergedProps) {
+    if (!mergedProps.hasOwnProperty(prop)) {
+      continue;
+    }
+
+    if (prop in oldProps && !(prop in newProps)) {
+      finalProps[prop] = null;
+    } else if (prop in newProps && !(prop in oldProps)) {
+      finalProps[prop] = newProps[prop];
+    } else if (
+      prop in oldProps &&
+      prop in newProps &&
+      oldProps[prop] !== newProps[prop]
+    ) {
+      finalProps[prop] = newProps[prop];
+    } else {
+      continue;
+    }
+  }
+
+  return Object.keys(finalProps).length > 0 ? finalProps : null;
+}
+```
+
+**Logic:**
+1. Merge old and new props
+2. For each prop:
+   - If removed (in old but not new): Set to `null`
+   - If added (in new but not old): Include new value
+   - If changed: Include new value
+   - If unchanged: Skip
+3. Return changes or `null` if nothing changed
+
+<Note>
+  Returning `null` from `prepareUpdate` tells React there's nothing to update, skipping the commit phase for this widget.
+</Note>
+
+#### commitUpdate
+
+Applies the prop changes to the widget:
+
+```typescript
+// From reconciler.ts:63-72
+commitUpdate(
+  instance: GtkWidgetImpl,
+  updatePayload: GtkWidgetProps,
+  _type,
+  _prevProps,
+  _nextProps,
+  _internalHandle
+): void {
+  instance.updateProps(updatePayload);
+}
+```
+
+This delegates to the widget's `updateProps()` method, which:
+1. Disconnects old signal handlers
+2. Updates native widget properties
+3. Connects new signal handlers
+
+#### commitTextUpdate
+
+Handles text node updates:
+
+```typescript
+// From reconciler.ts:74-82
+commitTextUpdate(
+  textInstance: GtkLabelImpl,
+  oldText: string,
+  newText: string
+): void {
+  if (newText !== oldText) {
+    textInstance.label = newText;
+  }
+}
+```
+
+### Instance Management
+
+#### getPublicInstance
+
+Returns the instance that will be available via refs:
+
+```typescript
+// From reconciler.ts:84-86
+getPublicInstance(instance: GtkWidgetImpl): GtkWidgetImpl {
+  return instance;
+}
+```
+
+This allows you to access widget implementations through refs:
+
+```tsx
+const buttonRef = useRef<GtkButtonImpl>();
+
+<GtkButton ref={buttonRef} />
+
+// Access widget implementation
+buttonRef.current.nativeInstance; // Native GTK button
+```
+
+#### detachDeletedInstance
+
+Cleans up a deleted widget:
+
+```typescript
+// From reconciler.ts:200-202
+detachDeletedInstance(instance: unknown): void {
+  (instance as GtkWidgetImpl).detach();
+}
+```
+
+Calls the widget's `detach()` method to:
+- Unparent the widget from its parent
+- Unrealize the widget (free GDK resources)
+
+### Context Methods
+
+React GTK doesn't use host context, so these return `null`:
+
+```typescript
+// From reconciler.ts:88-94
+getRootHostContext(_rootInstance): null {
+  return null;
+}
+
+getChildHostContext(_parentHostContext, _type): null {
+  return null;
+}
+```
+
+Host context is typically used for context that affects child rendering (like namespaces in React DOM). React GTK doesn't need this.
+
+### Commit Phase Methods
+
+```typescript
+// From reconciler.ts:137-147
+prepareForCommit(): null {
+  return null;
+}
+
+clearContainer(): null {
+  return null;
+}
+
+resetAfterCommit(): null {
+  return null;
+}
+```
+
+These lifecycle hooks allow renderers to perform actions before/after commits. React GTK doesn't need any special handling here.
+
+### Scheduling
+
+The reconciler uses standard JavaScript timing functions:
+
+```typescript
+// From reconciler.ts:208-217
+scheduleTimeout(
+  fn: (...args: unknown[]) => unknown,
+  delay?: number | undefined
+): number {
+  return setTimeout(fn, delay);
+}
+
+cancelTimeout(id: number): void {
+  clearTimeout(id);
+}
+```
+
+This integrates React's scheduling with the JavaScript event loop, which works alongside GTK's GLib MainLoop.
+
+## Root Container Management
+
+### Creating a Root
+
+The `createRoot` function initializes the reconciler:
+
+```typescript
+// From reconciler.ts:244-288
+export const createRoot = ({
+  id,
+  flags = Gio.ApplicationFlags.FLAGS_NONE,
+}: RootAppConfig): RootAppInstance => {
+  const app = new Gtk.Application({
+    application_id: id,
+    flags,
+  });
+  
+  const root = reconciler.createContainer(
+    app,
+    0,
+    null,
+    false,
+    null,
+    '',
+    (e) => console.error(e),
+    null
+  );
+
+  return {
+    render(element: JSX.Element, argv: string[] = []) {
+      app.loop = new GLib.MainLoop(null, false);
+
+      app.connect('activate', () => {
+        reconciler.updateContainer(element, root, null, function () {
+          let activeWindow: GtkWindowImpl | null = app.activeWindow;
+
+          if (!app.$windows) {
+            app.$windows = [];
+          }
+
+          if (!activeWindow && app.$windows.length) {
+            activeWindow = app.$windows[0];
+          }
+
+          activeWindow?.present();
+        });
+      });
+
+      app.run(argv);
+      app.loop.run();
+    },
+  };
+};
+```
+
+**Steps:**
+
+<Steps>
+  <Step title="Create GTK Application">
+    Creates a `Gtk.Application` with your application ID and flags.
+  </Step>
+
+  <Step title="Create Reconciler Container">
+    Calls `reconciler.createContainer()` with the GTK app as the container. This creates the root fiber node for React's tree.
+  </Step>
+
+  <Step title="Return Render Function">
+    Returns an object with a `render()` method that:
+    - Creates a GLib MainLoop
+    - Connects to the app's `activate` signal
+    - Updates the reconciler container with your React element
+    - Presents the first window
+    - Runs the GTK application and event loop
+  </Step>
+</Steps>
+
+### Rendering Elements
+
+When `render()` is called:
+
+```typescript
+reconciler.updateContainer(element, root, null, function () {
+  // Callback after initial render
+  let activeWindow: GtkWindowImpl | null = app.activeWindow;
+
+  if (!app.$windows) {
+    app.$windows = [];
+  }
+
+  if (!activeWindow && app.$windows.length) {
+    activeWindow = app.$windows[0];
+  }
+
+  activeWindow?.present();
+});
+```
+
+1. `updateContainer()` triggers the reconciler to create/update the tree
+2. After rendering, the callback presents the active window
+3. The GTK app enters its event loop
+
+<Warning>
+  Once `app.run()` is called, the application enters the GTK event loop. React updates happen asynchronously within this loop.
+</Warning>
+
+## Integration with GTK
+
+### GJS Environment
+
+React GTK runs in GJS (GNOME JavaScript), which provides bindings to GTK:
+
+```typescript
+// From reconciler.ts:13-15
+declare const imports: any;
+
+const { Gtk, Gio, GLib } = ((imports.gi.versions.Gtk = '4.0'), imports.gi);
+```
+
+- **`imports.gi`**: Access to GObject Introspection libraries
+- **`Gtk`**: GTK 4.0 widgets and types
+- **`Gio`**: Application framework
+- **`GLib`**: Core utilities and event loop
+
+### Event Loop Interaction
+
+React GTK bridges two event loops:
+
+1. **JavaScript Event Loop** - Handles React updates, `setTimeout`, Promises, etc.
+2. **GLib MainLoop** - Handles GTK events (clicks, keyboard input, redraws)
+
+The reconciler's `scheduleTimeout` uses JavaScript's `setTimeout`, which GJS integrates with the GLib MainLoop. This ensures React updates are processed correctly within GTK's event system.
+
+### Signal Handling
+
+GTK signals are connected through the reconciler's update system:
+
+```typescript
+// When a widget prop like `onClicked` is set:
+this.nativeInstance.connect('clicked', (self, ...args) => {
+  if (self?.$impl instanceof GtkWidgetImpl) {
+    self = self.$impl;
+  }
+  return handler(self, ...args);
+});
+```
+
+The reconciler ensures:
+- Old handlers are disconnected before new ones are connected
+- The widget implementation (not native instance) is passed to handlers
+- Signal names are converted from React conventions (camelCase) to GTK conventions (kebab-case)
+
+## Performance Considerations
+
+### Prop Diffing
+
+The `prepareUpdate` method does a shallow comparison of props. For optimal performance:
+
+- Use primitive values when possible
+- Avoid creating new objects/arrays in render:
+
+```jsx
+// Bad: Creates new array every render
+<GtkWidget cssClasses={['class1', 'class2']} />
+
+// Good: Reference stable array
+const classes = ['class1', 'class2'];
+<GtkWidget cssClasses={classes} />
+```
+
+### Update Batching
+
+React automatically batches updates within event handlers. Multiple `setState` calls in a GTK signal handler will result in a single reconciler update:
+
+```tsx
+function MyComponent() {
+  const [count, setCount] = useState(0);
+  const [text, setText] = useState('');
+
+  return (
+    <GtkButton onClicked={() => {
+      setCount(c => c + 1);  // Batched
+      setText('Updated');     // together
+    }}>
+      {text} {count}
+    </GtkButton>
+  );
+}
+```
+
+<Info>
+  React 18's automatic batching works in React GTK, including in promises and timeouts.
+</Info>
+
+## Extending the Reconciler
+
+To add a new widget type:
+
+<Steps>
+  <Step title="Create Widget Implementation">
+    Extend `GtkWidgetImpl` and implement required methods:
+
+    ```typescript
+    export class GtkNewWidgetImpl extends GtkWidgetImpl {
+      get nativeName(): string {
+        return 'NewWidget';
+      }
+
+      // Implement child management if needed
+      appendChild(child: GtkWidgetImpl): void {
+        // ...
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Register in Implementations Map">
+    Add your widget to the reconciler's registry:
+
+    ```typescript
+    const implementations = {
+      // ... existing widgets
+      [GTK_NEW_WIDGET_TAG]: GtkNewWidgetImpl,
+    };
+    ```
+  </Step>
+
+  <Step title="Create React Component">
+    Use `createReactComponent` to generate the component:
+
+    ```typescript
+    export const GtkNewWidget = createReactComponent<
+      GtkNewWidgetImpl,
+      GtkNewWidgetProps
+    >(GTK_NEW_WIDGET_TAG);
+    ```
+  </Step>
+</Steps>
+
+The reconciler will automatically handle creation, updates, and cleanup for your new widget type.

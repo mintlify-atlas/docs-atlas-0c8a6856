@@ -1,0 +1,237 @@
+---
+title: GtkButton
+description: A widget that emits a signal when clicked
+---
+
+`GtkButton` is a clickable widget that can contain text, icons, or custom child widgets. It's one of the most commonly used interactive widgets in GTK applications.
+
+## Props
+
+<ParamField path="label" type="string">
+  Text to display inside the button. Creates a label widget automatically.
+</ParamField>
+
+<ParamField path="iconName" type="string">
+  The name of an icon to display in the button. Uses the system icon theme.
+</ParamField>
+
+<ParamField path="hasFrame" type="boolean">
+  Whether the button has a visible frame/border.
+  
+  Default: `true`
+</ParamField>
+
+<ParamField path="useUnderline" type="boolean">
+  If `true`, an underscore in the label text indicates the next character should be used as the mnemonic accelerator key.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="actionName" type="string">
+  The name of the action to trigger when clicked. Used with GTK actions.
+</ParamField>
+
+<ParamField path="actionTarget" type="any">
+  The target value for the associated action.
+</ParamField>
+
+<ParamField path="children" type="ReactElement | string">
+  Custom child widget or text to display inside the button. Overrides the `label` prop.
+</ParamField>
+
+## Events
+
+<ParamField path="onClicked" type="(self: GtkButtonImpl) => void">
+  Emitted when the button is clicked (pressed and released).
+</ParamField>
+
+<ParamField path="onActivate" type="(self: GtkButtonImpl) => void">
+  Emitted to animate press then release. Used for keyboard activation.
+</ParamField>
+
+### Inherited Props
+
+`GtkButton` extends [`GtkWidget`](/api/components/gtk-widget) and inherits all its props including layout, styling, and event handling properties.
+
+## Usage
+
+### Basic Button
+
+```tsx
+import { GtkButton } from 'react-gtk-renderer';
+
+function MyButton() {
+  return (
+    <GtkButton 
+      label="Click Me"
+      onClicked={() => console.log('Button clicked!')}
+    />
+  );
+}
+```
+
+### Button with State
+
+```tsx
+import { GtkButton, GtkLabel, GtkBox } from 'react-gtk-renderer';
+import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  
+  return (
+    <GtkBox orientation={GtkOrientation.VERTICAL} spacing={10}>
+      <GtkLabel label={`Count: ${count}`} />
+      <GtkButton onClicked={() => setCount(prev => prev + 1)}>
+        You have clicked me {count} times
+      </GtkButton>
+    </GtkBox>
+  );
+}
+```
+
+### Button with Custom Child
+
+Use the `children` prop for custom content:
+
+```tsx
+import { GtkButton, GtkLabel } from 'react-gtk-renderer';
+
+function CustomButton() {
+  return (
+    <GtkButton onClicked={() => console.log('Clicked!')}>
+      <GtkLabel label="<b>Bold</b> Button" useMarkup />
+    </GtkButton>
+  );
+}
+```
+
+### Flat Button (No Frame)
+
+Create a flat button without a border:
+
+```tsx
+import { GtkButton } from 'react-gtk-renderer';
+
+function FlatButton() {
+  return (
+    <GtkButton 
+      label="Flat Button"
+      hasFrame={false}
+      onClicked={() => console.log('Clicked!')}
+    />
+  );
+}
+```
+
+### Button with Icon
+
+```tsx
+import { GtkButton } from 'react-gtk-renderer';
+
+function IconButton() {
+  return (
+    <GtkButton 
+      iconName="document-save"
+      onClicked={() => console.log('Save clicked')}
+    />
+  );
+}
+```
+
+### Conditional Content
+
+Change button content dynamically:
+
+```tsx
+import { GtkButton } from 'react-gtk-renderer';
+import { useState } from 'react';
+
+function DynamicButton() {
+  const [clicked, setClicked] = useState(false);
+  
+  return (
+    <GtkButton onClicked={() => setClicked(!clicked)}>
+      {clicked ? "Thanks!" : "Click Me"}
+    </GtkButton>
+  );
+}
+```
+
+### Using Refs
+
+Access the button instance with a ref:
+
+```tsx
+import { GtkButton, GtkButtonImpl } from 'react-gtk-renderer';
+import { useRef } from 'react';
+
+function ButtonWithRef() {
+  const buttonRef = useRef<GtkButtonImpl>();
+  
+  return (
+    <GtkButton 
+      ref={buttonRef}
+      label="My Button"
+      onClicked={(self) => {
+        console.log('Button clicked:', self.name);
+      }}
+    />
+  );
+}
+```
+
+## Common Patterns
+
+### Action Buttons
+
+Create action button groups:
+
+```tsx
+import { GtkBox, GtkButton, GtkOrientation } from 'react-gtk-renderer';
+
+function ActionButtons() {
+  return (
+    <GtkBox orientation={GtkOrientation.HORIZONTAL} spacing={10}>
+      <GtkButton label="Cancel" onClicked={() => console.log('Cancel')} />
+      <GtkButton label="OK" onClicked={() => console.log('OK')} />
+    </GtkBox>
+  );
+}
+```
+
+### Conditional Actions
+
+Execute different actions based on state:
+
+```tsx
+import { GtkButton } from 'react-gtk-renderer';
+import { useState } from 'react';
+
+function ConditionalButton() {
+  const [count, setCount] = useState(0);
+  const isComplete = count >= 5;
+  
+  return (
+    <GtkButton 
+      onClicked={
+        isComplete 
+          ? () => console.log('Complete!') 
+          : () => setCount(prev => prev + 1)
+      }
+    >
+      {isComplete ? 'Done!' : `Click ${5 - count} more times`}
+    </GtkButton>
+  );
+}
+```
+
+## Notes
+
+<Note>
+  Buttons can only have a single child. Use `GtkBox` if you need multiple widgets inside a button.
+</Note>
+
+<Note>
+  The `children` prop takes precedence over the `label` prop. Use one or the other, not both.
+</Note>

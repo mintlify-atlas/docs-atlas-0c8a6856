@@ -1,80 +1,472 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+description: "Build your first React GTK application in minutes"
 ---
 
-## Get started in three steps
+This tutorial will guide you through creating your first React GTK desktop application. You'll learn how to set up a project, create components, and render a functional GTK window.
 
-Get your documentation site running locally and make your first customization.
+<Note>
+  Before starting, make sure you have [installed React GTK](/installation) and all prerequisites (GJS, GTK 4.0, Node.js).
+</Note>
 
-### Step 1: Set up your local environment
+## Create your first app
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+Let's build a simple counter application to learn the basics of React GTK.
+
+<Steps>
+  <Step title="Set up the project">
+    Create a new directory and initialize your project:
+
+    ```bash
+    mkdir my-first-gtk-app
+    cd my-first-gtk-app
+    npm init -y
+    ```
+
+    Install dependencies:
+
+    <CodeGroup>
+      ```bash npm
+      npm install react react-gtk-renderer
+      npm install -D typescript parcel @parcel/packager-ts @parcel/transformer-typescript-types
+      ```
+
+      ```bash yarn
+      yarn add react react-gtk-renderer
+      yarn add -D typescript parcel @parcel/packager-ts @parcel/transformer-typescript-types
+      ```
+
+      ```bash pnpm
+      pnpm add react react-gtk-renderer
+      pnpm add -D typescript parcel @parcel/packager-ts @parcel/transformer-typescript-types
+      ```
+    </CodeGroup>
+
+    Create the project structure:
+    ```bash
+    mkdir -p src/components
+    ```
+  </Step>
+
+  <Step title="Configure TypeScript">
+    Create `tsconfig.json` in the project root:
+
+    ```json tsconfig.json
+    {
+      "compilerOptions": {
+        "target": "ES2020",
+        "module": "ESNext",
+        "lib": ["ES2020"],
+        "jsx": "react",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "moduleResolution": "node"
+      },
+      "include": ["src/**/*"]
+    }
+    ```
+  </Step>
+
+  <Step title="Create the app component">
+    Create `src/components/app.tsx` with a simple counter:
+
+    ```tsx src/components/app.tsx
+    import { useState } from 'react';
+    import {
+      GtkWindow,
+      GtkBox,
+      GtkLabel,
+      GtkButton,
+      GtkAlign,
+      GtkOrientation
+    } from 'react-gtk-renderer';
+
+    export function MyApp() {
+      const [count, setCount] = useState(0);
+
+      return (
+        <GtkWindow
+          defaultHeight={400}
+          defaultWidth={600}
+          title="My First GTK App"
+        >
+          <GtkBox
+            orientation={GtkOrientation.VERTICAL}
+            spacing={20}
+            marginStart={40}
+            marginEnd={40}
+            marginTop={40}
+            marginBottom={40}
+            valign={GtkAlign.CENTER}
+            halign={GtkAlign.CENTER}
+          >
+            <GtkLabel label="Welcome to React GTK!" />
+            
+            <GtkLabel label={`Count: ${count}`} />
+            
+            <GtkButton onClicked={() => setCount(count + 1)}>
+              Click me!
+            </GtkButton>
+            
+            <GtkButton onClicked={() => setCount(0)}>
+              Reset
+            </GtkButton>
+          </GtkBox>
+        </GtkWindow>
+      );
+    }
+    ```
+
+    <Tip>
+      Notice how you can use React hooks like `useState` - React GTK works with the full React API!
+    </Tip>
+  </Step>
+
+  <Step title="Create the entry point">
+    Create `src/index.tsx` to initialize and render your app:
+
+    ```tsx src/index.tsx
+    import { createRoot } from 'react-gtk-renderer';
+    import { MyApp } from './components/app';
+
+    declare const imports: any;
+
+    imports.package.init({
+      name: 'com.example.myfirstapp',
+      version: '1.0.0',
+      prefix: '/usr',
+      libdir: '/usr/lib',
+      pkgdatadir: '/usr/share'
+    });
+
+    imports.package.run({
+      main: function (argv: string[]) {
+        const root = createRoot({
+          id: 'com.example.myfirstapp'
+        });
+
+        root.render(<MyApp />, argv);
+      }
+    });
+    ```
+
+    <Note>
+      The application ID (`com.example.myfirstapp`) should follow reverse-DNS notation. Use a unique identifier for your app.
+    </Note>
+  </Step>
+
+  <Step title="Add build scripts">
+    Update your `package.json` to include build and run scripts:
+
+    ```json package.json
+    {
+      "name": "my-first-gtk-app",
+      "version": "1.0.0",
+      "source": "src/index.tsx",
+      "scripts": {
+        "build": "parcel build --no-source-maps",
+        "start": "parcel watch --no-source-maps --no-hmr",
+        "app": "gjs dist/index.js",
+        "dev": "npm run build && npm run app",
+        "clean": "rm -rf dist .parcel-cache"
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Build and run">
+    Build your application and run it:
+
+    ```bash
+    npm run build
+    npm run app
+    ```
+
+    You should see a GTK window with:
+    - A welcome message
+    - A counter display
+    - Two buttons to increment and reset the counter
+
+    <Check>
+      Congratulations! You've built your first React GTK application!
+    </Check>
+  </Step>
+</Steps>
+
+## Understanding the code
+
+Let's break down the key parts of your first application:
+
+### Creating a root
+
+```tsx
+const root = createRoot({ id: 'com.example.myfirstapp' });
+```
+
+The `createRoot` function initializes your GTK application. It returns a `RootAppInstance` that you use to render your React components.
+
+### GTK components
+
+```tsx
+<GtkWindow defaultHeight={400} defaultWidth={600} title="My First GTK App">
+  {/* Window content */}
+</GtkWindow>
+```
+
+GTK widgets are available as React components. Each component accepts props that map to GTK widget properties.
+
+### Layout with GtkBox
+
+```tsx
+<GtkBox
+  orientation={GtkOrientation.VERTICAL}
+  spacing={20}
+  valign={GtkAlign.CENTER}
+  halign={GtkAlign.CENTER}
+>
+  {/* Child widgets */}
+</GtkBox>
+```
+
+`GtkBox` is a container widget for laying out child widgets horizontally or vertically. Use it to create structured layouts.
+
+### Event handling
+
+```tsx
+<GtkButton onClicked={() => setCount(count + 1)}>
+  Click me!
+</GtkButton>
+```
+
+GTK signals (events) are exposed as props with the `on` prefix. The `clicked` signal becomes `onClicked`.
+
+### React hooks
+
+```tsx
+const [count, setCount] = useState(0);
+```
+
+You can use all React hooks and patterns. State updates trigger re-renders, and the React GTK reconciler efficiently updates the GTK widget tree.
+
+## Add more features
+
+Now that you have a basic app, try adding these features:
+
+<CardGroup cols={2}>
+  <Card title="Text input" icon="keyboard">
+    Add a `GtkEntry` component for text input:
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    ```tsx
+    const [text, setText] = useState('');
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    <GtkEntry
+      onChanged={(entry) => setText(entry.text)}
+    />
+    ```
+  </Card>
 
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+  <Card title="Multiple pages" icon="layer-group">
+    Use `GtkStack` and `GtkStackPage` to create multi-page layouts:
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    ```tsx
+    <GtkStack>
+      <GtkStackPage name="page1">
+        {/* First page */}
+      </GtkStackPage>
+      <GtkStackPage name="page2">
+        {/* Second page */}
+      </GtkStackPage>
+    </GtkStack>
+    ```
+  </Card>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+  <Card title="Refs" icon="link">
+    Access GTK widget instances with refs:
+    
+    ```tsx
+    const entryRef = useRef<GtkEntryImpl>();
+    
+    <GtkEntry ref={entryRef} />
+    
+    // Access widget: entryRef.current
+    ```
+  </Card>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Card title="Styled text" icon="font">
+    Apply Pango attributes for text formatting:
+    
+    ```tsx
+    <GtkEntry
+      attributes={[
+        {
+          start: 0,
+          end: 5,
+          type: 'foreground',
+          value: 'red'
+        }
+      ]}
+    />
+    ```
+  </Card>
+</CardGroup>
 
-### Step 3: Go live
+## Development workflow
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+For an efficient development workflow:
+
+### Watch mode
+
+Use watch mode to automatically rebuild on file changes:
+
+```bash
+npm run start
+```
+
+In another terminal, run your app:
+
+```bash
+npm run app
+```
+
+Restart the app after each rebuild to see your changes.
+
+### Clean builds
+
+If you encounter build issues, clean the cache:
+
+```bash
+npm run clean
+npm run build
+```
+
+### Debugging
+
+View console output from your app:
+
+```tsx
+console.log('Debug info:', someValue);
+```
+
+The output appears in the terminal where you run `npm run app`.
+
+<Tip>
+  Use `console.log` to debug event handlers, state updates, and widget properties.
+</Tip>
+
+## Complete example
+
+Here's a more complete example with multiple features:
+
+```tsx src/components/app.tsx
+import { useState, useRef } from 'react';
+import {
+  GtkWindow,
+  GtkBox,
+  GtkLabel,
+  GtkButton,
+  GtkEntry,
+  GtkEntryImpl,
+  GtkAlign,
+  GtkOrientation
+} from 'react-gtk-renderer';
+
+export function MyApp() {
+  const [count, setCount] = useState(0);
+  const [name, setName] = useState('');
+  const entryRef = useRef<GtkEntryImpl>();
+
+  const handleReset = () => {
+    setCount(0);
+    setName('');
+    if (entryRef.current) {
+      entryRef.current.buffer.text = '';
+    }
+  };
+
+  return (
+    <GtkWindow
+      defaultHeight={500}
+      defaultWidth={600}
+      title="Counter & Greeter"
+    >
+      <GtkBox
+        orientation={GtkOrientation.VERTICAL}
+        spacing={20}
+        marginStart={40}
+        marginEnd={40}
+        marginTop={40}
+        marginBottom={40}
+        valign={GtkAlign.CENTER}
+        halign={GtkAlign.CENTER}
+      >
+        <GtkLabel label="Welcome to React GTK!" />
+        
+        {/* Counter section */}
+        <GtkBox
+          orientation={GtkOrientation.VERTICAL}
+          spacing={10}
+          halign={GtkAlign.CENTER}
+        >
+          <GtkLabel label={`You clicked ${count} times`} />
+          <GtkButton onClicked={() => setCount(count + 1)}>
+            Increment
+          </GtkButton>
+        </GtkBox>
+        
+        {/* Greeter section */}
+        <GtkBox
+          orientation={GtkOrientation.VERTICAL}
+          spacing={10}
+          halign={GtkAlign.CENTER}
+        >
+          <GtkEntry
+            ref={entryRef}
+            onChanged={(entry) => setName(entry.text)}
+          />
+          {name && <GtkLabel label={`Hello, ${name}!`} />}
+        </GtkBox>
+        
+        {/* Reset button */}
+        <GtkButton onClicked={handleReset}>
+          Reset All
+        </GtkButton>
+      </GtkBox>
+    </GtkWindow>
+  );
+}
+```
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
+Now that you've built your first React GTK app, explore these topics:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Core concepts" icon="book-open" href="/concepts/rendering">
+    Learn how React GTK's rendering and reconciliation works
+  </Card>
+  
+  <Card title="GTK widgets" icon="window" href="/concepts/widgets">
+    Explore all available GTK components and their properties
+  </Card>
+  
+  <Card title="Event handling" icon="bolt" href="/guides/event-handling">
+    Master GTK signals and event handling in React
+  </Card>
+  
+  <Card title="Working with refs" icon="link" href="/guides/refs">
+    Access GTK widget instances and use the imperative API
+  </Card>
+  
+  <Card title="Building apps" icon="hammer" href="/guides/building-apps">
+    Learn best practices for structuring production applications
+  </Card>
+  
+  <Card title="Examples" icon="code" href="/examples/basic-app">
+    See more complete example applications
+  </Card>
 </CardGroup>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  **Need help?** Check out the [API reference](/api/create-root) for detailed documentation on all components and APIs.
 </Note>

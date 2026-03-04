@@ -1,0 +1,178 @@
+---
+title: Contract Types
+description: TypeScript interface contracts used throughout React GTK for interacting with GTK+ and Pango APIs.
+---
+
+Contract types define the interface contracts for various GTK+ and Pango objects, as well as configuration interfaces for the React GTK renderer.
+
+## GtkTooltip
+
+Interface for interacting with GTK tooltips. This contract provides methods to customize tooltip appearance and content.
+
+<ResponseField name="set_custom" type="(widgetNativeInstance: any) => void">
+  Replaces the widget packed into the tooltip with a custom widget. The custom widget does not get destroyed when the tooltip goes away. By default a box with a `GtkImage` and `GtkLabel` is embedded in the tooltip, which can be configured using `set_markup` and `set_icon_from_icon_name`.
+
+  <Expandable title="Example">
+    You need to pass the `nativeInstance` property of a widget ref to this method:
+
+    ```tsx
+    const widgetRef = useRef<GtkLabelImpl>();
+
+    tooltip.set_custom(widgetRef.current.nativeInstance);
+    ```
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="set_icon_from_icon_name" type="(name: string) => void">
+  Sets the icon of the tooltip (which is in front of the text) to be the icon indicated by `name`. If `name` is NULL, the image will be hidden.
+</ResponseField>
+
+<ResponseField name="set_markup" type="(markup: string) => void">
+  Sets the text of the tooltip to be markup. Accepts Pango markup language.
+</ResponseField>
+
+<ResponseField name="set_text" type="(text: string) => void">
+  Sets the text of the tooltip to be plain text.
+</ResponseField>
+
+<ResponseField name="set_tip_area" type="(rect: any) => void">
+  Sets the area of the widget, where the contents of this tooltip apply, to be `rect` (in widget coordinates). This is especially useful for properly setting tooltips on GtkTreeView rows and cells, GtkIconViews, etc.
+</ResponseField>
+
+---
+
+## PangoAttrItem
+
+Interface representing a Pango attribute item used for text styling and formatting.
+
+<ResponseField name="start" type="number">
+  The start index of the attribute range. `-1` is accepted in place of `MAXUINT`.
+</ResponseField>
+
+<ResponseField name="end" type="number">
+  The end index of the attribute range. `-1` is accepted in place of `MAXUINT`.
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  The nickname of the attribute value type.
+</ResponseField>
+
+<ResponseField name="value" type="string">
+  The attribute value, which can be:
+  - Enum values as nick or numeric value
+  - Boolean values as `true` or `false`
+  - Integers and floats as numbers
+  - Strings as string, optionally quoted
+  - Font features as quoted string
+  - Pango Language as string
+  - Pango FontDescription as serialized by `font_description_to_string`, quoted
+  - Pango Color as serialized by `color_to_string`
+</ResponseField>
+
+---
+
+## GtkEntryBuffer
+
+Interface for managing the text buffer of a GTK entry widget.
+
+<ResponseField name="text" type="string">
+  The contents of the buffer. This property has both getter and setter.
+</ResponseField>
+
+<ResponseField name="length" type="number" readonly>
+  The length in characters of the buffer. Read-only.
+</ResponseField>
+
+<ResponseField name="maxLength" type="number">
+  The maximum allowed length of the text in the buffer. This property has both getter and setter.
+</ResponseField>
+
+<ResponseField name="insert_text" type="(position: number, chars: string, length: number) => void">
+  Inserts `length` characters of `chars` into the contents of the buffer, at the specified `position`.
+
+  <ParamField path="position" type="number" required>
+    The position at which to insert text.
+  </ParamField>
+
+  <ParamField path="chars" type="string" required>
+    The text to insert.
+  </ParamField>
+
+  <ParamField path="length" type="number" required>
+    The number of characters to insert.
+  </ParamField>
+</ResponseField>
+
+<ResponseField name="delete_text" type="(position: number, length: number) => void">
+  Deletes a sequence of characters from the buffer.
+
+  <ParamField path="position" type="number" required>
+    The position at which to start deleting.
+  </ParamField>
+
+  <ParamField path="length" type="number" required>
+    The number of characters to delete.
+  </ParamField>
+</ResponseField>
+
+<ResponseField name="get_bytes" type="() => number">
+  Retrieves the length in bytes of the buffer.
+</ResponseField>
+
+---
+
+## RootAppConfig
+
+Configuration interface for creating a React GTK root application instance.
+
+<ResponseField name="id" type="string" required>
+  The application ID, typically in reverse DNS notation (e.g., `com.example.MyApp`).
+</ResponseField>
+
+<ResponseField name="flags" type="number">
+  Optional GTK application flags. These flags control the application's behavior.
+</ResponseField>
+
+<Accordion title="Example Usage">
+  ```tsx
+  import { createRoot } from 'react-gtk';
+
+  const config: RootAppConfig = {
+    id: 'com.example.MyApp',
+    flags: 0
+  };
+
+  const root = createRoot(config);
+  ```
+</Accordion>
+
+---
+
+## RootAppInstance
+
+Interface for the React GTK root application instance returned by `createRoot`.
+
+<ResponseField name="render" type="(element: JSX.Element, argv: string[]) => void">
+  Renders a React element tree into the GTK application.
+
+  <ParamField path="element" type="JSX.Element" required>
+    The root React element to render.
+  </ParamField>
+
+  <ParamField path="argv" type="string[]" required>
+    Command-line arguments array, typically `process.argv`.
+  </ParamField>
+</ResponseField>
+
+<Accordion title="Example Usage">
+  ```tsx
+  import { createRoot } from 'react-gtk';
+  import { App } from './App';
+
+  const root = createRoot({
+    id: 'com.example.MyApp'
+  });
+
+  root.render(<App />, process.argv);
+  ```
+</Accordion>

@@ -1,0 +1,304 @@
+---
+title: "Installation"
+description: "Set up React GTK and start building desktop applications"
+---
+
+## Prerequisites
+
+Before installing React GTK, ensure you have the following dependencies installed on your system:
+
+<AccordionGroup>
+  <Accordion title="GJS runtime" icon="gears">
+    GJS is the GNOME JavaScript runtime that provides JavaScript bindings for GNOME libraries including GTK.
+    
+    **Install on Ubuntu/Debian:**
+    ```bash
+    sudo apt install gjs
+    ```
+    
+    **Install on Fedora:**
+    ```bash
+    sudo dnf install gjs
+    ```
+    
+    **Install on Arch Linux:**
+    ```bash
+    sudo pacman -S gjs
+    ```
+    
+    Verify installation:
+    ```bash
+    gjs --version
+    ```
+  </Accordion>
+
+  <Accordion title="GTK 4.0" icon="window">
+    GTK 4.0 is required for React GTK to work. Most modern Linux distributions include GTK 4.
+    
+    **Install on Ubuntu/Debian:**
+    ```bash
+    sudo apt install libgtk-4-1 libgtk-4-dev
+    ```
+    
+    **Install on Fedora:**
+    ```bash
+    sudo dnf install gtk4 gtk4-devel
+    ```
+    
+    **Install on Arch Linux:**
+    ```bash
+    sudo pacman -S gtk4
+    ```
+    
+    <Note>
+      GTK 4.0 or later is required. React GTK does not support GTK 3.x.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Node.js and npm" icon="node">
+    Node.js is required for building your React GTK applications with bundlers.
+    
+    **Install Node.js 16.x or later:**
+    - Download from [nodejs.org](https://nodejs.org/)
+    - Or use a version manager like [nvm](https://github.com/nvm-sh/nvm)
+    
+    ```bash
+    node --version  # Should be 16.x or higher
+    npm --version
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Install React GTK
+
+Once you have the prerequisites installed, you can add React GTK to your project.
+
+<Steps>
+  <Step title="Create a new project directory">
+    ```bash
+    mkdir my-gtk-app
+    cd my-gtk-app
+    npm init -y
+    ```
+  </Step>
+
+  <Step title="Install React GTK and React">
+    Install the `react-gtk-renderer` package along with React:
+
+    <CodeGroup>
+      ```bash npm
+      npm install react-gtk-renderer react
+      ```
+
+      ```bash yarn
+      yarn add react-gtk-renderer react
+      ```
+
+      ```bash pnpm
+      pnpm add react-gtk-renderer react
+      ```
+    </CodeGroup>
+
+    <Note>
+      React GTK requires React 18.0 or higher as a peer dependency.
+    </Note>
+  </Step>
+
+  <Step title="Install development dependencies">
+    For TypeScript support and building your application, install these development dependencies:
+
+    <CodeGroup>
+      ```bash npm
+      npm install -D typescript parcel @parcel/packager-ts @parcel/transformer-typescript-types
+      ```
+
+      ```bash yarn
+      yarn add -D typescript parcel @parcel/packager-ts @parcel/transformer-typescript-types
+      ```
+
+      ```bash pnpm
+      pnpm add -D typescript parcel @parcel/packager-ts @parcel/transformer-typescript-types
+      ```
+    </CodeGroup>
+
+    <Tip>
+      While TypeScript is optional, it's highly recommended for the best development experience with full type definitions.
+    </Tip>
+  </Step>
+</Steps>
+
+## Project setup
+
+After installation, set up your project structure and configuration files.
+
+### TypeScript configuration
+
+Create a `tsconfig.json` file in your project root:
+
+```json tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020"],
+    "jsx": "react",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+### Package.json scripts
+
+Add build and run scripts to your `package.json`:
+
+```json package.json
+{
+  "name": "my-gtk-app",
+  "version": "1.0.0",
+  "source": "src/index.tsx",
+  "scripts": {
+    "build": "parcel build --no-source-maps",
+    "start": "parcel watch --no-source-maps --no-hmr",
+    "app": "gjs dist/index.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-gtk-renderer": "^1.0.6"
+  },
+  "devDependencies": {
+    "parcel": "^2.8.3",
+    "typescript": "^4.9.4",
+    "@parcel/packager-ts": "^2.8.3",
+    "@parcel/transformer-typescript-types": "^2.8.3"
+  }
+}
+```
+
+### Project structure
+
+Create the following directory structure:
+
+```
+my-gtk-app/
+├── src/
+│   ├── index.tsx          # Application entry point
+│   └── components/
+│       └── app.tsx        # Main app component
+├── dist/                  # Build output (generated)
+├── package.json
+└── tsconfig.json
+```
+
+<Tip>
+  The `src/` directory contains your source code, and Parcel will compile everything into the `dist/` directory.
+</Tip>
+
+## Verify installation
+
+To verify that everything is installed correctly, create a simple test file:
+
+```tsx src/index.tsx
+import { createRoot, GtkWindow, GtkLabel } from 'react-gtk-renderer';
+
+declare const imports: any;
+
+imports.package.init({
+  name: 'com.example.test',
+  version: '1.0.0',
+  prefix: '/usr',
+  libdir: '/usr/lib',
+  pkgdatadir: '/usr/share'
+});
+
+imports.package.run({
+  main: function (argv: string[]) {
+    const root = createRoot({ id: 'com.example.test' });
+    
+    root.render(
+      <GtkWindow title="Test App" defaultWidth={400} defaultHeight={300}>
+        <GtkLabel label="React GTK is installed!" />
+      </GtkWindow>,
+      argv
+    );
+  }
+});
+```
+
+Build and run:
+
+```bash
+npm run build
+npm run app
+```
+
+You should see a GTK window with the text "React GTK is installed!".
+
+<Check>
+  If the window appears, congratulations! React GTK is installed and working correctly.
+</Check>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="GJS not found" icon="circle-exclamation">
+    If you get an error that `gjs` command is not found:
+    
+    1. Ensure GJS is installed: `sudo apt install gjs` (or equivalent for your distro)
+    2. Verify it's in your PATH: `which gjs`
+    3. Check the version: `gjs --version`
+  </Accordion>
+
+  <Accordion title="GTK 4.0 not found" icon="circle-exclamation">
+    If you get errors about missing GTK 4.0:
+    
+    1. Install GTK 4 development packages: `sudo apt install libgtk-4-1 libgtk-4-dev`
+    2. Verify installation: `pkg-config --modversion gtk4`
+  </Accordion>
+
+  <Accordion title="Build errors with Parcel" icon="circle-exclamation">
+    If Parcel fails to build:
+    
+    1. Ensure you have all Parcel plugins installed:
+       ```bash
+       npm install -D @parcel/packager-ts @parcel/transformer-typescript-types
+       ```
+    2. Clear Parcel cache: `rm -rf .parcel-cache`
+    3. Try rebuilding: `npm run clean && npm run build`
+  </Accordion>
+
+  <Accordion title="TypeScript errors" icon="circle-exclamation">
+    If you get TypeScript errors:
+    
+    1. Ensure `tsconfig.json` has `"jsx": "react"`
+    2. Check that React types are available (they're included with React 18+)
+    3. Verify `react-gtk-renderer` includes its type definitions
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart tutorial" icon="rocket" href="/quickstart">
+    Build your first React GTK application with a step-by-step tutorial
+  </Card>
+  
+  <Card title="Core concepts" icon="book-open" href="/concepts/rendering">
+    Learn how React GTK renders components and manages widgets
+  </Card>
+  
+  <Card title="GTK components" icon="window" href="/api/components/gtk-window">
+    Explore all available GTK widgets as React components
+  </Card>
+  
+  <Card title="Examples" icon="code" href="/examples/basic-app">
+    See complete example applications
+  </Card>
+</CardGroup>

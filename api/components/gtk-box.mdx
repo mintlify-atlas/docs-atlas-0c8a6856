@@ -1,0 +1,167 @@
+---
+title: GtkBox
+description: A container widget that arranges its children in a single row or column
+---
+
+`GtkBox` is a container widget that arranges its children sequentially in a single row (horizontal) or column (vertical). It's one of the most commonly used layout widgets for organizing UI elements.
+
+## Props
+
+<ParamField path="orientation" type="GtkOrientation">
+  The box's orientation - either `GtkOrientation.HORIZONTAL` or `GtkOrientation.VERTICAL`.
+  
+  Default: `GtkOrientation.HORIZONTAL`
+</ParamField>
+
+<ParamField path="spacing" type="number">
+  The amount of space in pixels between children.
+  
+  Default: `0`
+</ParamField>
+
+<ParamField path="homogeneous" type="boolean">
+  Whether all children should be allocated the same size.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  The child widgets to arrange inside the box.
+</ParamField>
+
+### Inherited Props
+
+`GtkBox` extends [`GtkWidget`](/api/components/gtk-widget) and inherits all its props including layout, styling, and event handling properties.
+
+## Usage
+
+### Vertical Layout
+
+```tsx
+import { GtkBox, GtkButton, GtkOrientation, GtkAlign } from 'react-gtk-renderer';
+
+function Sidebar() {
+  return (
+    <GtkBox 
+      orientation={GtkOrientation.VERTICAL}
+      spacing={10}
+      marginStart={20}
+      marginEnd={20}
+      valign={GtkAlign.CENTER}
+    >
+      <GtkButton label="Home" />
+      <GtkButton label="Settings" />
+      <GtkButton label="About" />
+    </GtkBox>
+  );
+}
+```
+
+### Horizontal Layout
+
+```tsx
+import { GtkBox, GtkButton, GtkOrientation } from 'react-gtk-renderer';
+
+function Toolbar() {
+  return (
+    <GtkBox 
+      orientation={GtkOrientation.HORIZONTAL}
+      spacing={5}
+    >
+      <GtkButton label="Save" />
+      <GtkButton label="Open" />
+      <GtkButton label="Close" />
+    </GtkBox>
+  );
+}
+```
+
+### Homogeneous Children
+
+When `homogeneous` is true, all children receive equal space:
+
+```tsx
+import { GtkBox, GtkButton, GtkOrientation } from 'react-gtk-renderer';
+
+function ButtonGroup() {
+  return (
+    <GtkBox 
+      orientation={GtkOrientation.HORIZONTAL}
+      spacing={5}
+      homogeneous
+    >
+      <GtkButton label="Yes" />
+      <GtkButton label="No" />
+      <GtkButton label="Cancel" />
+    </GtkBox>
+  );
+}
+```
+
+### Nested Boxes
+
+Boxes can be nested to create complex layouts:
+
+```tsx
+import { GtkBox, GtkLabel, GtkButton, GtkOrientation, GtkAlign } from 'react-gtk-renderer';
+
+function ComplexLayout() {
+  return (
+    <GtkBox 
+      orientation={GtkOrientation.VERTICAL}
+      spacing={25}
+      marginStart={25}
+      marginEnd={25}
+      valign={GtkAlign.CENTER}
+      halign={GtkAlign.CENTER}
+    >
+      <GtkLabel label="Welcome to My App" />
+      
+      <GtkBox orientation={GtkOrientation.HORIZONTAL} spacing={10}>
+        <GtkButton label="Option A" />
+        <GtkButton label="Option B" />
+      </GtkBox>
+    </GtkBox>
+  );
+}
+```
+
+## Common Patterns
+
+### Centered Content
+
+Use alignment props to center content within a box:
+
+```tsx
+<GtkBox
+  orientation={GtkOrientation.VERTICAL}
+  valign={GtkAlign.CENTER}
+  halign={GtkAlign.CENTER}
+  spacing={20}
+>
+  {/* Content will be centered */}
+</GtkBox>
+```
+
+### Spacing and Margins
+
+Combine spacing and margin props for precise layout control:
+
+```tsx
+<GtkBox
+  orientation={GtkOrientation.VERTICAL}
+  spacing={10}           // Space between children
+  marginStart={25}       // Left margin
+  marginEnd={25}         // Right margin
+  marginTop={20}         // Top margin
+  marginBottom={20}      // Bottom margin
+>
+  {/* Content */}
+</GtkBox>
+```
+
+## Notes
+
+<Note>
+  Use `GtkBox` as your primary layout container. It's lightweight and efficient for most layout needs.
+</Note>

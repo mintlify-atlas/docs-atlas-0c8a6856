@@ -1,0 +1,179 @@
+---
+title: 'Basic Application'
+description: 'Create a simple GTK application with React GTK, featuring a window, labels, and buttons'
+---
+
+This guide walks you through creating a basic GTK application using React GTK. You'll learn how to set up a simple window with UI components and handle user interactions.
+
+## Overview
+
+A basic React GTK application consists of:
+- A `GtkWindow` as the top-level container
+- Layout components like `GtkBox` to organize widgets
+- UI widgets like `GtkLabel` and `GtkButton`
+- React state management for interactivity
+
+<Steps>
+  <Step title="Set up the application entry point">
+    Create your main entry file that initializes the GTK application:
+
+    ```tsx index.tsx
+    import { MyApp } from './components/app';
+    import { createRoot } from 'react-gtk-renderer';
+
+    declare const imports: any;
+
+    imports.package.init({
+      name: '@PACKAGE_ID@',
+      version: '@PACKAGE_VERSION@',
+      prefix: '@PREFIX@',
+      libdir: '@LIBDIR@',
+      pkgdatadir: '@PKGDATADIR@',
+    });
+
+    imports.package.run({
+      main: function (argv: string[]) {
+        const root = createRoot({
+          id: '@PACKAGE_ID@',
+        });
+
+        root.render(<MyApp />, argv);
+      },
+    });
+    ```
+
+    The `createRoot` function initializes the React GTK renderer, similar to React DOM's `createRoot`.
+  </Step>
+
+  <Step title="Create a basic window component">
+    Build your main application component with a window, label, and button:
+
+    ```tsx app.tsx
+    import {
+      GtkAlign,
+      GtkBox,
+      GtkButton,
+      GtkLabel,
+      GtkOrientation,
+      GtkWindow,
+    } from 'react-gtk-renderer';
+    import { useState } from 'react';
+
+    export function MyApp() {
+      const [count, setCount] = useState(0);
+
+      return (
+        <GtkWindow defaultHeight={600} defaultWidth={800} title='My App'>
+          <GtkBox
+            marginStart={25}
+            marginEnd={25}
+            spacing={25}
+            valign={GtkAlign.CENTER}
+            halign={GtkAlign.CENTER}
+            orientation={GtkOrientation.VERTICAL}>
+            <GtkLabel label='Hello World' />
+
+            <GtkButton onClicked={() => setCount((prev) => prev + 1)}>
+              {`You have clicked me ${count} times`}
+            </GtkButton>
+          </GtkBox>
+        </GtkWindow>
+      );
+    }
+    ```
+  </Step>
+
+  <Step title="Understand the component structure">
+    **GtkWindow**: The top-level window container
+    - `defaultHeight` and `defaultWidth`: Set the initial window size
+    - `title`: The window title displayed in the title bar
+
+    **GtkBox**: A container that arranges children in a single row or column
+    - `orientation`: Use `GtkOrientation.VERTICAL` or `GtkOrientation.HORIZONTAL`
+    - `spacing`: Space between child widgets
+    - `marginStart` and `marginEnd`: Padding around the box
+    - `valign` and `halign`: Vertical and horizontal alignment
+
+    **GtkLabel**: Displays text
+    - `label`: The text content to display
+
+    **GtkButton**: An interactive button
+    - `onClicked`: Event handler when the button is clicked
+    - Children: The button label (can be text or other components)
+  </Step>
+</Steps>
+
+## Adding Conditional Rendering
+
+You can use React's conditional rendering with GTK components:
+
+```tsx
+import { useMemo } from 'react';
+
+export function MyApp() {
+  const [count, setCount] = useState(0);
+  const hasClickedSixTimes = useMemo(() => count === 6, [count]);
+
+  return (
+    <GtkWindow defaultHeight={600} defaultWidth={800} title='My App'>
+      <GtkBox
+        marginStart={25}
+        marginEnd={25}
+        spacing={25}
+        valign={GtkAlign.CENTER}
+        halign={GtkAlign.CENTER}
+        orientation={GtkOrientation.VERTICAL}>
+        <GtkLabel label='Hello World' />
+
+        {hasClickedSixTimes && (
+          '<i>Hi World, testing insertBefore and text instance!</i>'
+        )}
+
+        <GtkButton onClicked={() => setCount((prev) => prev + 1)}>
+          {hasClickedSixTimes
+            ? `You are now a developer, click again!`
+            : `You have clicked me ${count} times`}
+        </GtkButton>
+      </GtkBox>
+    </GtkWindow>
+  );
+}
+```
+
+<Note>
+  React GTK supports standard React features like hooks, conditional rendering, and state management. You can use `useState`, `useEffect`, `useMemo`, and other React hooks just like in React DOM applications.
+</Note>
+
+## Key Concepts
+
+<Accordion title="Layout and Alignment">
+  GTK uses a box model for layout. The `GtkBox` component is fundamental for arranging widgets:
+  
+  - **Vertical orientation**: Stacks children from top to bottom
+  - **Horizontal orientation**: Arranges children from left to right
+  - **Alignment**: Control positioning with `valign` (top, center, bottom) and `halign` (start, center, end)
+  - **Spacing**: Add gaps between children with the `spacing` property
+</Accordion>
+
+<Accordion title="Event Handling">
+  GTK widgets emit signals that you can handle with React props:
+  
+  - `GtkButton` uses `onClicked` for click events
+  - Event handlers receive the widget instance as an argument
+  - You can update React state in event handlers to trigger re-renders
+</Accordion>
+
+<Accordion title="Window Properties">
+  The `GtkWindow` component accepts several properties:
+  
+  - `title`: Window title text
+  - `defaultWidth` and `defaultHeight`: Initial window dimensions
+  - `modal`: Make the window modal (blocks interaction with other windows)
+  - `resizable`: Whether the window can be resized (default: true)
+</Accordion>
+
+## Next Steps
+
+- Learn how to manage [multiple windows](/examples/multiple-windows)
+- Explore [form inputs](/examples/form-inputs) with GtkEntry
+- Check out the [component reference](/api/components/gtk-window) for all available widgets

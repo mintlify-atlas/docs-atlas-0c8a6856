@@ -1,0 +1,289 @@
+---
+title: GtkStack
+description: A container that shows one child at a time with animated transitions
+---
+
+`GtkStack` is a container widget that displays one of its children at a time. It provides smooth animated transitions when switching between children, making it ideal for implementing multi-page interfaces, wizards, and tabbed views.
+
+## Props
+
+<ParamField path="transitionType" type="GtkStackTransitionType">
+  The type of animation to use when transitioning between children.
+  
+  Available transitions:
+  - `GtkStackTransitionType.NONE` - No animation
+  - `GtkStackTransitionType.CROSSFADE` - Fade between pages
+  - `GtkStackTransitionType.SLIDE_RIGHT` - Slide from left to right
+  - `GtkStackTransitionType.SLIDE_LEFT` - Slide from right to left
+  - `GtkStackTransitionType.SLIDE_UP` - Slide from bottom to top
+  - `GtkStackTransitionType.SLIDE_DOWN` - Slide from top to bottom
+  - And more...
+  
+  Default: `GtkStackTransitionType.NONE`
+</ParamField>
+
+<ParamField path="transitionDuration" type="number">
+  The animation duration in milliseconds.
+  
+  Default: `200`
+</ParamField>
+
+<ParamField path="hhomogeneous" type="boolean">
+  If `true`, the stack allocates the same width for all children.
+  
+  Default: `true`
+</ParamField>
+
+<ParamField path="vhomogeneous" type="boolean">
+  If `true`, the stack allocates the same height for all children.
+  
+  Default: `true`
+</ParamField>
+
+<ParamField path="interpolateSize" type="boolean">
+  Whether the size should smoothly change during transitions.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  The stack pages to display. Must be `GtkStackPage` components.
+</ParamField>
+
+### Inherited Props
+
+`GtkStack` extends [`GtkWidget`](/api/components/gtk-widget) and inherits all its props including layout, styling, and event handling properties.
+
+## Usage
+
+### Basic Stack Navigation
+
+```tsx
+import { 
+  GtkStack, 
+  GtkStackPage, 
+  GtkStackImpl,
+  GtkButton, 
+  GtkLabel,
+  GtkBox,
+  GtkOrientation,
+  GtkStackTransitionType 
+} from 'react-gtk-renderer';
+import { useRef } from 'react';
+
+function MultiPageApp() {
+  const stackRef = useRef<GtkStackImpl>();
+  
+  return (
+    <GtkStack 
+      ref={stackRef}
+      transitionType={GtkStackTransitionType.SLIDE_RIGHT}
+    >
+      <GtkStackPage name="page1">
+        <GtkBox orientation={GtkOrientation.VERTICAL} spacing={10}>
+          <GtkLabel label="Page 1" />
+          <GtkButton 
+            label="Next"
+            onClicked={() => {
+              stackRef.current.visibleChildName = 'page2';
+            }}
+          />
+        </GtkBox>
+      </GtkStackPage>
+      
+      <GtkStackPage name="page2">
+        <GtkBox orientation={GtkOrientation.VERTICAL} spacing={10}>
+          <GtkLabel label="Page 2" />
+          <GtkButton 
+            label="Previous"
+            onClicked={() => {
+              stackRef.current.visibleChildName = 'page1';
+            }}
+          />
+        </GtkBox>
+      </GtkStackPage>
+    </GtkStack>
+  );
+}
+```
+
+### Wizard Interface
+
+```tsx
+import { GtkStack, GtkStackPage, GtkStackImpl, GtkButton, GtkLabel, GtkBox } from 'react-gtk-renderer';
+import { useRef, useState } from 'react';
+
+function WizardApp() {
+  const stackRef = useRef<GtkStackImpl>();
+  const [currentStep, setCurrentStep] = useState(1);
+  
+  const goToStep = (step: number) => {
+    stackRef.current.visibleChildName = `step${step}`;
+    setCurrentStep(step);
+  };
+  
+  return (
+    <GtkBox orientation={GtkOrientation.VERTICAL}>
+      <GtkLabel label={`Step ${currentStep} of 3`} />
+      
+      <GtkStack 
+        ref={stackRef}
+        transitionType={GtkStackTransitionType.SLIDE_LEFT}
+        transitionDuration={300}
+      >
+        <GtkStackPage name="step1">
+          <GtkBox orientation={GtkOrientation.VERTICAL} spacing={10}>
+            <GtkLabel label="Welcome to the wizard" />
+            <GtkButton label="Next" onClicked={() => goToStep(2)} />
+          </GtkBox>
+        </GtkStackPage>
+        
+        <GtkStackPage name="step2">
+          <GtkBox orientation={GtkOrientation.VERTICAL} spacing={10}>
+            <GtkLabel label="Configure your settings" />
+            <GtkButton label="Back" onClicked={() => goToStep(1)} />
+            <GtkButton label="Next" onClicked={() => goToStep(3)} />
+          </GtkBox>
+        </GtkStackPage>
+        
+        <GtkStackPage name="step3">
+          <GtkBox orientation={GtkOrientation.VERTICAL} spacing={10}>
+            <GtkLabel label="All done!" />
+            <GtkButton label="Back" onClicked={() => goToStep(2)} />
+            <GtkButton label="Finish" onClicked={() => console.log('Complete!')} />
+          </GtkBox>
+        </GtkStackPage>
+      </GtkStack>
+    </GtkBox>
+  );
+}
+```
+
+### Crossfade Transition
+
+```tsx
+import { GtkStack, GtkStackPage, GtkStackTransitionType } from 'react-gtk-renderer';
+
+function FadingStack() {
+  return (
+    <GtkStack 
+      transitionType={GtkStackTransitionType.CROSSFADE}
+      transitionDuration={500}
+    >
+      <GtkStackPage name="view1">
+        <GtkLabel label="View 1" />
+      </GtkStackPage>
+      <GtkStackPage name="view2">
+        <GtkLabel label="View 2" />
+      </GtkStackPage>
+    </GtkStack>
+  );
+}
+```
+
+## Instance Properties
+
+When using a ref, you can access these properties on the `GtkStackImpl` instance:
+
+### visibleChild
+
+Get or set the currently visible child page:
+
+```tsx
+import { useRef } from 'react';
+
+const stackRef = useRef<GtkStackImpl>();
+
+// Get current visible child
+const currentPage = stackRef.current.visibleChild;
+
+// Set visible child (by instance)
+stackRef.current.visibleChild = somePage;
+```
+
+### visibleChildName
+
+Get or set the visible child by name (most commonly used):
+
+```tsx
+import { useRef } from 'react';
+
+const stackRef = useRef<GtkStackImpl>();
+
+// Get current page name
+const currentPageName = stackRef.current.visibleChildName;
+
+// Set visible child by name
+stackRef.current.visibleChildName = 'page2';
+```
+
+## Common Patterns
+
+### State-driven Navigation
+
+```tsx
+import { GtkStack, GtkStackPage, GtkStackImpl } from 'react-gtk-renderer';
+import { useRef, useEffect, useState } from 'react';
+
+function StateDrivenStack() {
+  const stackRef = useRef<GtkStackImpl>();
+  const [activePage, setActivePage] = useState('home');
+  
+  useEffect(() => {
+    if (stackRef.current) {
+      stackRef.current.visibleChildName = activePage;
+    }
+  }, [activePage]);
+  
+  return (
+    <>
+      <GtkBox orientation={GtkOrientation.HORIZONTAL} spacing={5}>
+        <GtkButton label="Home" onClicked={() => setActivePage('home')} />
+        <GtkButton label="Settings" onClicked={() => setActivePage('settings')} />
+      </GtkBox>
+      
+      <GtkStack ref={stackRef} transitionType={GtkStackTransitionType.SLIDE_RIGHT}>
+        <GtkStackPage name="home">
+          <GtkLabel label="Home Page" />
+        </GtkStackPage>
+        <GtkStackPage name="settings">
+          <GtkLabel label="Settings Page" />
+        </GtkStackPage>
+      </GtkStack>
+    </>
+  );
+}
+```
+
+### Getting Current Page
+
+```tsx
+import { GtkButton } from 'react-gtk-renderer';
+
+function LogCurrentPage() {
+  const stackRef = useRef<GtkStackImpl>();
+  
+  return (
+    <GtkButton 
+      label="Log Current Page"
+      onClicked={() => {
+        console.log('Current page:', stackRef.current.visibleChildName);
+      }}
+    />
+  );
+}
+```
+
+## Notes
+
+<Note>
+  Always use `GtkStackPage` components as direct children of `GtkStack`. Each page should have a unique `name` prop for navigation.
+</Note>
+
+<Note>
+  Use the `visibleChildName` property to programmatically change which page is displayed. This is the most common way to control stack navigation.
+</Note>
+
+<Warning>
+  If you don't specify a `name` prop on `GtkStackPage`, the stack will auto-generate a name, but you won't be able to navigate to it by name.
+</Warning>

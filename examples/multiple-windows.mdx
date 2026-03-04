@@ -1,0 +1,280 @@
+---
+title: 'Multiple Windows'
+description: 'Manage multiple GtkWindow components in your React GTK application'
+---
+
+Learn how to create and manage multiple windows in your React GTK application, including modal dialogs and window lifecycle management.
+
+## Overview
+
+React GTK allows you to render multiple `GtkWindow` components simultaneously. This is useful for:
+- Creating dialog windows
+- Building multi-window applications
+- Showing modal popups
+- Managing secondary application windows
+
+## Creating Multiple Windows
+
+You can render multiple `GtkWindow` components by returning them as siblings in a React fragment:
+
+```tsx
+import { GtkWindow, GtkBox, GtkButton, GtkLabel } from 'react-gtk-renderer';
+import { useRef } from 'react';
+
+export function MyApp() {
+  const secondWinRef = useRef<GtkWindowImpl>();
+
+  return (
+    <>
+      <GtkWindow defaultHeight={600} defaultWidth={800} title='Main Window'>
+        {/* Main window content */}
+      </GtkWindow>
+
+      <GtkWindow
+        modal
+        ref={secondWinRef}
+        defaultHeight={500}
+        defaultWidth={500}
+        title='Secondary Window'>
+        {/* Secondary window content */}
+      </GtkWindow>
+    </>
+  );
+}
+```
+
+<Note>
+  Use React fragments (`<>...</>`) to return multiple windows from your component without adding extra DOM nodes.
+</Note>
+
+## Complete Example: Modal Dialog
+
+Here's a full example showing how to create a main window with a button that opens a modal dialog:
+
+<Steps>
+  <Step title="Set up component state and refs">
+    ```tsx
+    import {
+      GtkAlign,
+      GtkBox,
+      GtkButton,
+      GtkLabel,
+      GtkOrientation,
+      GtkWindow,
+      GtkWindowImpl,
+    } from 'react-gtk-renderer';
+    import { useRef, useState } from 'react';
+
+    export function MyApp() {
+      const [count, setCount] = useState(0);
+      const secondWinRef = useRef<GtkWindowImpl>();
+      const hasClickedSixTimes = count === 6;
+
+      // Component continues...
+    }
+    ```
+  </Step>
+
+  <Step title="Create the main window">
+    ```tsx
+    return (
+      <>
+        <GtkWindow defaultHeight={600} defaultWidth={800} title='My App'>
+          <GtkBox
+            marginStart={25}
+            marginEnd={25}
+            spacing={25}
+            valign={GtkAlign.CENTER}
+            halign={GtkAlign.CENTER}
+            orientation={GtkOrientation.VERTICAL}>
+            <GtkLabel label='Hello World' />
+
+            <GtkButton
+              onClicked={
+                hasClickedSixTimes
+                  ? () => {
+                      secondWinRef.current?.present();
+                      setCount(0);
+                    }
+                  : () => setCount((prev) => prev + 1)
+              }>
+              {hasClickedSixTimes
+                ? `You are now a developer, click again!`
+                : `You have clicked me ${count} times`}
+            </GtkButton>
+          </GtkBox>
+        </GtkWindow>
+
+        {/* Second window defined below */}
+      </>
+    );
+    ```
+  </Step>
+
+  <Step title="Add the modal window">
+    ```tsx
+    <GtkWindow
+      modal
+      ref={secondWinRef}
+      defaultHeight={500}
+      defaultWidth={500}
+      title='Royal Hotness'>
+      <GtkBox
+        marginStart={25}
+        marginEnd={25}
+        spacing={25}
+        valign={GtkAlign.CENTER}
+        halign={GtkAlign.CENTER}
+        orientation={GtkOrientation.VERTICAL}>
+        <GtkLabel label='I am here to tell you that your head is hot.' />
+
+        <GtkButton onClicked={() => secondWinRef.current?.close()}>
+          Close Me
+        </GtkButton>
+      </GtkBox>
+    </GtkWindow>
+    ```
+  </Step>
+</Steps>
+
+## Window Control Methods
+
+Use refs to control window behavior programmatically:
+
+<CodeGroup>
+```tsx Present Window
+// Show and raise the window to the front
+secondWinRef.current?.present();
+```
+
+```tsx Close Window
+// Close the window
+secondWinRef.current?.close();
+```
+
+```tsx Hide Window
+// Hide the window without closing it
+secondWinRef.current?.hide();
+```
+
+```tsx Show Window
+// Show a previously hidden window
+secondWinRef.current?.show();
+```
+</CodeGroup>
+
+## Window Properties
+
+<Accordion title="Modal Windows">
+  Set the `modal` property to make a window modal:
+  
+  ```tsx
+  <GtkWindow modal title='Dialog'>
+    {/* Modal content */}
+  </GtkWindow>
+  ```
+  
+  Modal windows:
+  - Block interaction with other windows in the application
+  - Keep focus until closed
+  - Are ideal for dialogs and alerts that require user attention
+</Accordion>
+
+<Accordion title="Window Sizing">
+  Control window dimensions with:
+  
+  - `defaultWidth` and `defaultHeight`: Initial window size
+  - `resizable`: Whether users can resize the window (default: true)
+  
+  ```tsx
+  <GtkWindow
+    defaultWidth={400}
+    defaultHeight={300}
+    resizable={false}>
+    {/* Fixed-size window */}
+  </GtkWindow>
+  ```
+</Accordion>
+
+<Accordion title="Window References">
+  Use React refs to access window instances:
+  
+  ```tsx
+  import { useRef } from 'react';
+  import { GtkWindowImpl } from 'react-gtk-renderer';
+  
+  const windowRef = useRef<GtkWindowImpl>();
+  
+  // Access methods
+  windowRef.current?.present();
+  windowRef.current?.close();
+  ```
+  
+  The ref provides access to GTK window methods for programmatic control.
+</Accordion>
+
+## Best Practices
+
+<Note>
+  **Window Lifecycle**: By default, secondary windows may not be visible when first rendered. Use the `present()` method to show them when needed, typically in response to user actions.
+</Note>
+
+<Note>
+  **Memory Management**: Windows persist until explicitly closed. Make sure to provide users with a way to close secondary windows, either through a close button or the window's close control.
+</Note>
+
+## Common Patterns
+
+### Conditional Window Rendering
+
+You can conditionally render windows based on state:
+
+```tsx
+const [showDialog, setShowDialog] = useState(false);
+
+return (
+  <>
+    <GtkWindow title='Main'>
+      <GtkButton onClicked={() => setShowDialog(true)}>
+        Open Dialog
+      </GtkButton>
+    </GtkWindow>
+
+    {showDialog && (
+      <GtkWindow modal title='Dialog'>
+        <GtkButton onClicked={() => setShowDialog(false)}>
+          Close
+        </GtkButton>
+      </GtkWindow>
+    )}
+  </>
+);
+```
+
+### Window Communication
+
+Use shared state to communicate between windows:
+
+```tsx
+const [message, setMessage] = useState('');
+
+return (
+  <>
+    <GtkWindow title='Window 1'>
+      <GtkLabel label={message} />
+    </GtkWindow>
+
+    <GtkWindow title='Window 2'>
+      <GtkButton onClicked={() => setMessage('Hello from Window 2!')}>
+        Send Message
+      </GtkButton>
+    </GtkWindow>
+  </>
+);
+```
+
+## Next Steps
+
+- Explore [form inputs](/examples/form-inputs) for user input handling
+- Learn about [navigation](/examples/basic-app) within a single window
+- Check out the [GtkWindow component reference](/api/components/gtk-window) for all available properties

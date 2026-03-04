@@ -1,0 +1,120 @@
+---
+title: GtkWindow
+description: The top-level container widget for creating application windows
+---
+
+`GtkWindow` is the top-level container widget that represents a window on the desktop. It serves as the root container for your application's UI and handles window management features like title, size, and modality.
+
+## Props
+
+<ParamField path="title" type="string">
+  The title of the window displayed in the title bar.
+</ParamField>
+
+<ParamField path="defaultWidth" type="number">
+  The default width of the window in pixels.
+</ParamField>
+
+<ParamField path="defaultHeight" type="number">
+  The default height of the window in pixels.
+</ParamField>
+
+<ParamField path="modal" type="boolean">
+  If `true`, the window is modal and blocks interaction with other windows.
+</ParamField>
+
+<ParamField path="children" type="ReactElement | string">
+  The child widget to display inside the window. Windows can only have a single direct child.
+</ParamField>
+
+### Inherited Props
+
+`GtkWindow` extends [`GtkWidget`](/api/components/gtk-widget) and inherits all its props including layout, styling, and event handling properties.
+
+## Usage
+
+### Basic Window
+
+```tsx
+import { GtkWindow, GtkLabel } from 'react-gtk-renderer';
+
+function App() {
+  return (
+    <GtkWindow 
+      title="My Application" 
+      defaultWidth={800} 
+      defaultHeight={600}
+    >
+      <GtkLabel label="Hello World" />
+    </GtkWindow>
+  );
+}
+```
+
+### Modal Window
+
+Modal windows block interaction with other windows until closed:
+
+```tsx
+import { GtkWindow, GtkButton, GtkBox } from 'react-gtk-renderer';
+import { useRef } from 'react';
+
+function App() {
+  const modalRef = useRef<GtkWindowImpl>();
+
+  return (
+    <>
+      <GtkWindow title="Main Window" defaultWidth={800} defaultHeight={600}>
+        <GtkButton onClicked={() => modalRef.current?.present()}>
+          Open Modal
+        </GtkButton>
+      </GtkWindow>
+
+      <GtkWindow 
+        ref={modalRef}
+        modal
+        title="Modal Dialog" 
+        defaultWidth={400} 
+        defaultHeight={300}
+      >
+        <GtkButton onClicked={() => modalRef.current?.close()}>
+          Close
+        </GtkButton>
+      </GtkWindow>
+    </>
+  );
+}
+```
+
+## Instance Methods
+
+When using a ref, you can access these methods on the `GtkWindowImpl` instance:
+
+### present()
+
+Presents the window to the user, bringing it to the front and giving it focus.
+
+```tsx
+const windowRef = useRef<GtkWindowImpl>();
+
+// Later...
+windowRef.current?.present();
+```
+
+### close()
+
+Closes the window.
+
+```tsx
+windowRef.current?.close();
+```
+
+## Notes
+
+<Note>
+  Windows can only have a single direct child. Use container widgets like `GtkBox` or `GtkStack` to add multiple widgets.
+</Note>
+
+<Warning>
+  When the last visible window is closed, the application will automatically quit.
+</Warning>

@@ -1,0 +1,265 @@
+---
+title: Building Applications
+description: Best practices for structuring React GTK desktop applications
+---
+
+## Application Entry Point
+
+Every React GTK application starts with a root component that initializes the GTK environment and renders your app.
+
+<Steps>
+  <Step title="Initialize the GTK package">
+    Import the necessary initialization code and configure your package metadata.
+
+    ```tsx
+    declare const imports: any;
+
+    imports.package.init({
+      name: '@PACKAGE_ID@',
+      version: '@PACKAGE_VERSION@',
+      prefix: '@PREFIX@',
+      libdir: '@LIBDIR@',
+      pkgdatadir: '@PKGDATADIR@',
+    });
+    ```
+  </Step>
+
+  <Step title="Create the root renderer">
+    Use `createRoot` to initialize the React GTK renderer with your application ID.
+
+    ```tsx
+    import { createRoot } from 'react-gtk-renderer';
+
+    const root = createRoot({
+      id: '@PACKAGE_ID@',
+    });
+    ```
+  </Step>
+
+  <Step title="Render your app component">
+    Call `render()` with your main component and pass the command-line arguments.
+
+    ```tsx
+    imports.package.run({
+      main: function (argv: string[]) {
+        const root = createRoot({
+          id: '@PACKAGE_ID@',
+        });
+
+        root.render(<MyApp />, argv);
+      },
+    });
+    ```
+  </Step>
+</Steps>
+
+## Application Structure
+
+A typical React GTK application uses `GtkWindow` as the top-level container, with layout components organizing child widgets.
+
+### Single Window Application
+
+For simple applications, render a single window with your content:
+
+```tsx
+import { GtkWindow, GtkBox, GtkButton, GtkLabel, GtkAlign, GtkOrientation } from 'react-gtk-renderer';
+
+export function MyApp() {
+  return (
+    <GtkWindow defaultHeight={600} defaultWidth={800} title='My App'>
+      <GtkBox
+        orientation={GtkOrientation.VERTICAL}
+        spacing={25}
+        valign={GtkAlign.CENTER}
+        halign={GtkAlign.CENTER}>
+        <GtkLabel label='Hello World' />
+        <GtkButton label='Click Me' onClicked={() => console.log('Clicked!')} />
+      </GtkBox>
+    </GtkWindow>
+  );
+}
+```
+
+### Multi-Window Applications
+
+You can render multiple windows using React fragments. Secondary windows are typically modal dialogs:
+
+```tsx
+import { useRef } from 'react';
+import { GtkWindow, GtkWindowImpl, GtkButton } from 'react-gtk-renderer';
+
+export function MyApp() {
+  const secondWinRef = useRef<GtkWindowImpl>();
+
+  return (
+    <>
+      <GtkWindow defaultHeight={600} defaultWidth={800} title='Main Window'>
+        <GtkButton
+          onClicked={() => secondWinRef.current?.present()}>
+          Open Dialog
+        </GtkButton>
+      </GtkWindow>
+
+      <GtkWindow
+        modal
+        ref={secondWinRef}
+        defaultHeight={500}
+        defaultWidth={500}
+        title='Dialog'>
+        <GtkButton onClicked={() => secondWinRef.current?.close()}>
+          Close
+        </GtkButton>
+      </GtkWindow>
+    </>
+  );
+}
+```
+
+<Note>
+  The application automatically quits when all windows are closed.
+</Note>
+
+## Multi-Page Navigation
+
+Use `GtkStack` to create multi-page applications with smooth transitions:
+
+```tsx
+import { useRef } from 'react';
+import {
+  GtkStack,
+  GtkStackImpl,
+  GtkStackPage,
+  GtkStackTransitionType,
+  GtkButton,
+  GtkLabel,
+} from 'react-gtk-renderer';
+
+export function MultiPageApp() {
+  const stackRef = useRef<GtkStackImpl>();
+
+  return (
+    <GtkStack
+      ref={stackRef}
+      transitionType={GtkStackTransitionType.SLIDE_RIGHT}>
+      <GtkStackPage name='firstPage'>
+        <GtkLabel label='Page 1' />
+        <GtkButton
+          onClicked={() => {
+            stackRef.current.visibleChildName = 'secondPage';
+          }}>
+          Next page
+        </GtkButton>
+      </GtkStackPage>
+
+      <GtkStackPage name='secondPage'>
+        <GtkLabel label='Page 2' />
+        <GtkButton
+          onClicked={() => {
+            stackRef.current.visibleChildName = 'firstPage';
+          }}>
+          Previous page
+        </GtkButton>
+      </GtkStackPage>
+    </GtkStack>
+  );
+}
+```
+
+<Tip>
+  `GtkStackPage` extends `GtkBox`, so you can use layout properties like `orientation`, `spacing`, `valign`, and `halign` directly on it.
+</Tip>
+
+## State Management
+
+React GTK applications use standard React hooks for state management:
+
+```tsx
+import { useState, useMemo } from 'react';
+import { GtkButton, GtkLabel } from 'react-gtk-renderer';
+
+export function Counter() {
+  const [count, setCount] = useState(0);
+  const hasClickedSixTimes = useMemo(() => count === 6, [count]);
+
+  return (
+    <>
+      <GtkLabel label={`Count: ${count}`} />
+      <GtkButton
+        onClicked={
+          hasClickedSixTimes
+            ? () => setCount(0)
+            : () => setCount((prev) => prev + 1)
+        }>
+        {hasClickedSixTimes
+          ? `Reset counter`
+          : `You have clicked me ${count} times`}
+      </GtkButton>
+    </>
+  );
+}
+```
+
+## Component Organization
+
+Organize your application into reusable components:
+
+```tsx
+// components/sidebar.tsx
+export function Sidebar() {
+  return (
+    <GtkBox orientation={GtkOrientation.VERTICAL} spacing={10}>
+      {/* Sidebar content */}
+    </GtkBox>
+  );
+}
+
+// components/app.tsx
+import { Sidebar } from './sidebar';
+
+export function MyApp() {
+  return (
+    <GtkWindow defaultHeight={600} defaultWidth={800} title='My App'>
+      <GtkBox orientation={GtkOrientation.HORIZONTAL}>
+        <Sidebar />
+        {/* Main content */}
+      </GtkBox>
+    </GtkWindow>
+  );
+}
+```
+
+## Application Lifecycle
+
+### Window Lifecycle
+
+The application automatically manages window lifecycle:
+
+- Windows become visible when rendered
+- The app quits when all windows are closed
+- Use `present()` to show hidden windows
+- Use `close()` to close windows programmatically
+
+### Effects and Cleanup
+
+Use React's `useEffect` for initialization and cleanup:
+
+```tsx
+import { useEffect, useRef } from 'react';
+import { GtkEntryImpl } from 'react-gtk-renderer';
+
+export function MyComponent() {
+  const entryRef = useRef<GtkEntryImpl>();
+
+  useEffect(() => {
+    // Initialize on mount
+    entryRef.current.buffer.text = 'Initial value';
+
+    // Cleanup function
+    return () => {
+      // Cleanup code here
+    };
+  }, []);
+
+  return <GtkEntry ref={entryRef} />;
+}
+```

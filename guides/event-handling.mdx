@@ -1,0 +1,329 @@
+---
+title: Event Handling
+description: Handle GTK signals and events in React components
+---
+
+## Overview
+
+React GTK provides event handlers as props that follow React's naming convention (`onEventName`). These map directly to GTK signals, allowing you to respond to user interactions and widget state changes.
+
+## Button Events
+
+Buttons provide two primary event handlers:
+
+### onClicked
+
+Fired when a button is pressed and released:
+
+```tsx
+import { GtkButton, GtkButtonImpl } from 'react-gtk-renderer';
+
+function MyComponent() {
+  return (
+    <GtkButton
+      onClicked={(self: GtkButtonImpl) => {
+        console.log('Button clicked!');
+      }}>
+      Click Me
+    </GtkButton>
+  );
+}
+```
+
+### onActivate
+
+Fired to animate press-then-release action:
+
+```tsx
+<GtkButton
+  onActivate={(self: GtkButtonImpl) => {
+    console.log('Button activated!');
+  }}
+  label="Activate Me"
+/>
+```
+
+## Text Entry Events
+
+Text entry widgets provide several event handlers for monitoring and controlling text input.
+
+### onChanged
+
+Fired when the entry contents change:
+
+```tsx
+import { GtkEntry, GtkEntryImpl } from 'react-gtk-renderer';
+
+function TextInput() {
+  return (
+    <GtkEntry
+      onChanged={(entry: GtkEntryImpl) => {
+        console.log('Current text:', entry.text);
+      }}
+    />
+  );
+}
+```
+
+<Tip>
+  Access the current text value through `entry.text` or `entry.buffer.text`.
+</Tip>
+
+### onActivate
+
+Fired when Enter is pressed in the entry:
+
+```tsx
+<GtkEntry
+  onActivate={(entry: GtkEntryImpl) => {
+    console.log('Submit:', entry.text);
+  }}
+/>
+```
+
+### Text Modification Events
+
+Monitor granular text changes:
+
+```tsx
+<GtkEntry
+  onInsertText={(self, text, length, position) => {
+    console.log(`Inserted "${text}" at position ${position}`);
+  }}
+  onDeleteText={(self, start, end) => {
+    console.log(`Deleted text from ${start} to ${end}`);
+  }}
+/>
+```
+
+### Icon Events
+
+For entries with icons:
+
+```tsx
+import { GtkEntryIconPosition } from 'react-gtk-renderer';
+
+<GtkEntry
+  onIconPress={(self, position: GtkEntryIconPosition) => {
+    console.log('Icon pressed at:', position);
+  }}
+  onIconRelease={(self, position: GtkEntryIconPosition) => {
+    console.log('Icon released at:', position);
+  }}
+/>
+```
+
+## Event Handler Pattern
+
+All event handlers receive the widget implementation instance as the first parameter:
+
+```tsx
+import { GtkButton, GtkButtonImpl } from 'react-gtk-renderer';
+
+function handleClick(self: GtkButtonImpl) {
+  // self is the GtkButtonImpl instance
+  console.log('Widget name:', self.name);
+  console.log('Is visible:', self.visible);
+}
+
+<GtkButton onClicked={handleClick}>Click Me</GtkButton>
+```
+
+## Combining with State
+
+Event handlers work seamlessly with React state:
+
+```tsx
+import { useState } from 'react';
+import { GtkButton, GtkLabel } from 'react-gtk-renderer';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <>
+      <GtkLabel label={`Count: ${count}`} />
+      <GtkButton onClicked={() => setCount(prev => prev + 1)}>
+        Increment
+      </GtkButton>
+    </>
+  );
+}
+```
+
+## Dynamic Event Handlers
+
+You can change event handlers based on application state:
+
+```tsx
+import { useState, useMemo } from 'react';
+import { GtkButton } from 'react-gtk-renderer';
+
+function DynamicButton() {
+  const [count, setCount] = useState(0);
+  const isMaxed = useMemo(() => count >= 6, [count]);
+
+  return (
+    <GtkButton
+      onClicked={
+        isMaxed
+          ? () => setCount(0)
+          : () => setCount(prev => prev + 1)
+      }>
+      {isMaxed ? 'Reset' : `Clicked ${count} times`}
+    </GtkButton>
+  );
+}
+```
+
+## Widget Lifecycle Events
+
+All widgets inherit base lifecycle events from `GtkWidget`:
+
+### Visibility Events
+
+```tsx
+import { GtkBox, GtkWidgetImpl } from 'react-gtk-renderer';
+
+<GtkBox
+  onShow={(self: GtkWidgetImpl) => {
+    console.log('Widget shown');
+  }}
+  onHide={(self: GtkWidgetImpl) => {
+    console.log('Widget hidden');
+  }}
+/>
+```
+
+### Mapping Events
+
+```tsx
+<GtkBox
+  onMap={(self: GtkWidgetImpl) => {
+    console.log('Widget mapped (visible and ready to draw)');
+  }}
+  onUnmap={(self: GtkWidgetImpl) => {
+    console.log('Widget unmapped');
+  }}
+/>
+```
+
+### Realization Events
+
+```tsx
+<GtkBox
+  onRealize={(self: GtkWidgetImpl) => {
+    console.log('GDK resources created');
+  }}
+  onUnrealize={(self: GtkWidgetImpl) => {
+    console.log('GDK resources destroyed');
+  }}
+/>
+```
+
+### Destroy Event
+
+```tsx
+<GtkButton
+  onDestroy={(self: GtkWidgetImpl) => {
+    console.log('Widget destroyed');
+  }}
+  label="Temporary Button"
+/>
+```
+
+## Focus and Input Events
+
+### Direction Changed
+
+```tsx
+import { GtkTextDirection } from 'react-gtk-renderer';
+
+<GtkBox
+  onDirectionChanged={(self, previousDirection: GtkTextDirection) => {
+    console.log('Text direction changed from:', previousDirection);
+  }}
+/>
+```
+
+### Keyboard Navigation
+
+```tsx
+import { GtkDirectionType } from 'react-gtk-renderer';
+
+<GtkBox
+  onKeynavFailed={(self, direction: GtkDirectionType) => {
+    console.log('Keyboard navigation failed in direction:', direction);
+    return false; // Allow parent to handle
+  }}
+  onMoveFocus={(self, direction: GtkDirectionType) => {
+    console.log('Focus moved in direction:', direction);
+  }}
+/>
+```
+
+## State Change Events
+
+```tsx
+import { GtkStateFlags } from 'react-gtk-renderer';
+
+<GtkButton
+  onStateFlagsChanged={(self, flags: GtkStateFlags) => {
+    console.log('State flags changed:', flags);
+  }}
+  label="Monitor State"
+/>
+```
+
+## Tooltip Events
+
+```tsx
+import { GtkTooltip } from 'react-gtk-renderer';
+
+<GtkButton
+  hasTooltip
+  onQueryTooltip={(self, x, y, isKeyboardMode, tooltip: GtkTooltip) => {
+    console.log(`Tooltip query at (${x}, ${y})`);
+    return true; // Show tooltip
+  }}
+  label="Hover Me"
+/>
+```
+
+## Property Change Events
+
+```tsx
+<GtkButton
+  onNotify={(self, paramSpec) => {
+    console.log('Property changed:', paramSpec);
+  }}
+  label="Watch Properties"
+/>
+```
+
+## Event Handler Types
+
+All event handlers are strongly typed. Import the implementation types for type safety:
+
+```tsx
+import {
+  GtkButton,
+  GtkButtonImpl,
+  GtkEntry,
+  GtkEntryImpl,
+  GtkWidget,
+  GtkWidgetImpl,
+} from 'react-gtk-renderer';
+
+const handleButtonClick = (self: GtkButtonImpl) => {
+  // Type-safe access to button properties and methods
+};
+
+const handleEntryChange = (self: GtkEntryImpl) => {
+  // Type-safe access to entry properties and methods
+};
+```
+
+<Note>
+  Event handler props follow the pattern `on` + PascalCase signal name. For example, GTK's `clicked` signal becomes `onClicked`, and `state-flags-changed` becomes `onStateFlagsChanged`.
+</Note>

@@ -1,0 +1,469 @@
+---
+title: GtkWidget
+description: The base class for all widgets, providing common properties and behaviors
+---
+
+`GtkWidget` is the abstract base class for all UI components in React GTK. While you typically don't use `GtkWidget` directly, all other components inherit its props and behaviors.
+
+## Common Props
+
+These props are available on all widgets:
+
+### Layout
+
+<ParamField path="widthRequest" type="number">
+  Override for width request of the widget in pixels.
+</ParamField>
+
+<ParamField path="heightRequest" type="number">
+  Override for height request of the widget in pixels.
+</ParamField>
+
+<ParamField path="halign" type="GtkAlign">
+  How to distribute horizontal space if widget gets extra space.
+  
+  Options: `GtkAlign.FILL`, `GtkAlign.START`, `GtkAlign.END`, `GtkAlign.CENTER`
+</ParamField>
+
+<ParamField path="valign" type="GtkAlign">
+  How to distribute vertical space if widget gets extra space.
+  
+  Options: `GtkAlign.FILL`, `GtkAlign.START`, `GtkAlign.END`, `GtkAlign.CENTER`
+</ParamField>
+
+<ParamField path="hexpand" type="boolean">
+  Whether to expand horizontally to fill available space.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="vexpand" type="boolean">
+  Whether to expand vertically to fill available space.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="hexpandSet" type="boolean">
+  Whether to use the `hexpand` property.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="vexpandSet" type="boolean">
+  Whether to use the `vexpand` property.
+  
+  Default: `false`
+</ParamField>
+
+### Margins
+
+<ParamField path="marginStart" type="number">
+  Margin on the start edge (left in LTR, right in RTL) in pixels.
+</ParamField>
+
+<ParamField path="marginEnd" type="number">
+  Margin on the end edge (right in LTR, left in RTL) in pixels.
+</ParamField>
+
+<ParamField path="marginTop" type="number">
+  Margin on the top edge in pixels.
+</ParamField>
+
+<ParamField path="marginBottom" type="number">
+  Margin on the bottom edge in pixels.
+</ParamField>
+
+### Visibility & Interaction
+
+<ParamField path="visible" type="boolean">
+  Whether the widget is visible.
+  
+  Default: `true`
+</ParamField>
+
+<ParamField path="sensitive" type="boolean">
+  Whether the widget responds to input.
+  
+  Default: `true`
+</ParamField>
+
+<ParamField path="canFocus" type="boolean">
+  Whether the widget or any of its descendants can accept input focus.
+  
+  Default: Varies by widget type
+</ParamField>
+
+<ParamField path="canTarget" type="boolean">
+  Whether the widget can receive pointer events.
+  
+  Default: `true`
+</ParamField>
+
+<ParamField path="focusable" type="boolean">
+  Whether this widget itself will accept input focus.
+  
+  Default: Varies by widget type
+</ParamField>
+
+<ParamField path="focusOnClick" type="boolean">
+  Whether the widget should grab focus when clicked with the mouse.
+  
+  Default: Varies by widget type
+</ParamField>
+
+<ParamField path="hasFocus" type="boolean">
+  Whether the widget has input focus.
+</ParamField>
+
+<ParamField path="hasDefault" type="boolean">
+  Whether the widget is the default widget.
+</ParamField>
+
+<ParamField path="receivesDefault" type="boolean">
+  Whether the widget will receive the default action when focused.
+  
+  Default: `false`
+</ParamField>
+
+### Styling
+
+<ParamField path="cssClasses" type="string[]">
+  A list of CSS classes applied to this widget.
+</ParamField>
+
+<ParamField path="opacity" type="number">
+  The requested opacity of the widget (0.0 to 1.0).
+  
+  Default: `1.0`
+</ParamField>
+
+<ParamField path="cursor" type="string">
+  The cursor to display when hovering over the widget.
+  
+  Options: `'none'`, `'default'`, `'pointer'`, `'text'`, `'wait'`, `'crosshair'`, `'help'`, `'move'`, `'not-allowed'`, and many more.
+</ParamField>
+
+<ParamField path="overflow" type="GtkOverflow">
+  How content outside the widget's content area is treated.
+  
+  Options: `GtkOverflow.VISIBLE`, `GtkOverflow.HIDDEN`
+</ParamField>
+
+### Tooltips
+
+<ParamField path="hasTooltip" type="boolean">
+  Enables or disables the tooltip for this widget.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="tooltipText" type="string">
+  Sets the text of the tooltip as plain text.
+</ParamField>
+
+<ParamField path="tooltipMarkup" type="string">
+  Sets the text of the tooltip with Pango markup.
+</ParamField>
+
+### Other
+
+<ParamField path="name" type="string">
+  The name of the widget. Used for identification and CSS styling.
+</ParamField>
+
+<ParamField path="accessibleRole" type="GtkAccessibleRole">
+  The accessible role of the widget. Cannot be changed once set.
+</ParamField>
+
+<ParamField path="layoutManager" type="any">
+  The layout manager to compute preferred size and allocate children.
+</ParamField>
+
+## Events
+
+### Lifecycle Events
+
+<ParamField path="onRealize" type="(self: GtkWidgetImpl) => void">
+  Emitted when the widget is associated with a GdkSurface (about to be drawn).
+</ParamField>
+
+<ParamField path="onUnrealize" type="(self: GtkWidgetImpl) => void">
+  Emitted when the GdkSurface associated with the widget is destroyed.
+</ParamField>
+
+<ParamField path="onMap" type="(self: GtkWidgetImpl) => void">
+  Emitted when the widget is going to be mapped (visible with visible parents).
+</ParamField>
+
+<ParamField path="onUnmap" type="(self: GtkWidgetImpl) => void">
+  Emitted when the widget is going to be unmapped (hidden).
+</ParamField>
+
+<ParamField path="onShow" type="(self: GtkWidgetImpl) => void">
+  Emitted when the widget is shown.
+</ParamField>
+
+<ParamField path="onHide" type="(self: GtkWidgetImpl) => void">
+  Emitted when the widget is hidden.
+</ParamField>
+
+<ParamField path="onDestroy" type="(self: GtkWidgetImpl) => void">
+  Emitted when all holders should release their references to the widget.
+</ParamField>
+
+### Focus & Navigation
+
+<ParamField path="onMoveFocus" type="(self: GtkWidgetImpl, direction: GtkDirectionType) => void">
+  Emitted when focus is moved.
+</ParamField>
+
+<ParamField path="onKeynavFailed" type="(self: GtkWidgetImpl, direction: GtkDirectionType) => boolean">
+  Emitted if keyboard navigation fails. Return `true` to stop navigation, `false` to propagate.
+</ParamField>
+
+<ParamField path="onMnemonicActivate" type="(self: GtkWidgetImpl, groupCycling: boolean) => boolean">
+  Emitted when a widget is activated via a mnemonic. Return `true` to stop propagation.
+</ParamField>
+
+### State Changes
+
+<ParamField path="onNotify" type="(self: GtkWidgetImpl, paramSpec: any) => void">
+  Emitted when a property value changes.
+</ParamField>
+
+<ParamField path="onStateFlagsChanged" type="(self: GtkWidgetImpl, flags: GtkStateFlags) => void">
+  Emitted when the widget state changes.
+</ParamField>
+
+<ParamField path="onDirectionChanged" type="(self: GtkWidgetImpl, previousDirection: GtkTextDirection) => void">
+  Emitted when the text direction changes.
+</ParamField>
+
+### Tooltips
+
+<ParamField path="onQueryTooltip" type="(self: GtkWidgetImpl, x: number, y: number, isKeyboardMode: boolean, tooltip: GtkTooltip) => boolean">
+  Emitted when the widget's tooltip is about to be shown. Return `true` to show tooltip, `false` otherwise.
+</ParamField>
+
+## Instance Properties
+
+When using a ref on any widget, you can access these properties:
+
+### visible
+
+Get or set widget visibility:
+
+```tsx
+const widgetRef = useRef<GtkWidgetImpl>();
+
+// Get visibility
+const isVisible = widgetRef.current.visible;
+
+// Set visibility
+widgetRef.current.visible = false;
+```
+
+### name
+
+Get or set widget name:
+
+```tsx
+const widgetRef = useRef<GtkWidgetImpl>();
+
+// Get name
+const widgetName = widgetRef.current.name;
+
+// Set name
+widgetRef.current.name = "my-widget";
+```
+
+### parent
+
+Get the widget's parent:
+
+```tsx
+const parent = widgetRef.current.parent;
+```
+
+### root
+
+Get the root widget of the widget tree:
+
+```tsx
+const root = widgetRef.current.root;
+```
+
+### scaleFactor
+
+Get the scale factor of the widget (for HiDPI displays):
+
+```tsx
+const scale = widgetRef.current.scaleFactor;
+```
+
+## Instance Methods
+
+### realize()
+
+Creates the GDK resources associated with the widget:
+
+```tsx
+widgetRef.current.realize();
+```
+
+### unrealize()
+
+Frees all GDK resources associated with the widget:
+
+```tsx
+widgetRef.current.unrealize();
+```
+
+### unparent()
+
+Dissociates the widget from its parent:
+
+```tsx
+widgetRef.current.unparent();
+```
+
+### detach()
+
+Destroys the widget instance by unparenting and unrealizing:
+
+```tsx
+widgetRef.current.detach();
+```
+
+## Usage Examples
+
+### Centered Widget
+
+```tsx
+import { GtkButton, GtkAlign } from 'react-gtk-renderer';
+
+function CenteredButton() {
+  return (
+    <GtkButton
+      label="I'm Centered"
+      halign={GtkAlign.CENTER}
+      valign={GtkAlign.CENTER}
+    />
+  );
+}
+```
+
+### Widget with Margins
+
+```tsx
+import { GtkLabel } from 'react-gtk-renderer';
+
+function SpacedLabel() {
+  return (
+    <GtkLabel
+      label="Spaced Out"
+      marginStart={20}
+      marginEnd={20}
+      marginTop={10}
+      marginBottom={10}
+    />
+  );
+}
+```
+
+### Widget with Tooltip
+
+```tsx
+import { GtkButton } from 'react-gtk-renderer';
+
+function ButtonWithTooltip() {
+  return (
+    <GtkButton
+      label="Hover Me"
+      hasTooltip
+      tooltipText="This is a helpful tooltip"
+    />
+  );
+}
+```
+
+### Custom Cursor
+
+```tsx
+import { GtkButton } from 'react-gtk-renderer';
+
+function PointerButton() {
+  return (
+    <GtkButton
+      label="Click Me"
+      cursor="pointer"
+    />
+  );
+}
+```
+
+### Fixed Size Widget
+
+```tsx
+import { GtkButton } from 'react-gtk-renderer';
+
+function FixedButton() {
+  return (
+    <GtkButton
+      label="Fixed Size"
+      widthRequest={200}
+      heightRequest={50}
+    />
+  );
+}
+```
+
+### Widget with CSS Classes
+
+```tsx
+import { GtkLabel } from 'react-gtk-renderer';
+
+function StyledLabel() {
+  return (
+    <GtkLabel
+      label="Styled Text"
+      cssClasses={['title', 'primary']}
+    />
+  );
+}
+```
+
+### Conditional Visibility
+
+```tsx
+import { GtkLabel } from 'react-gtk-renderer';
+import { useState } from 'react';
+
+function ToggleableLabel() {
+  const [isVisible, setIsVisible] = useState(true);
+  
+  return (
+    <>
+      <GtkLabel label="I can disappear!" visible={isVisible} />
+      <GtkButton 
+        label={isVisible ? "Hide" : "Show"}
+        onClicked={() => setIsVisible(!isVisible)}
+      />
+    </>
+  );
+}
+```
+
+## Notes
+
+<Note>
+  All other components in React GTK inherit these props. You can use any `GtkWidget` prop on components like `GtkButton`, `GtkLabel`, `GtkBox`, etc.
+</Note>
+
+<Note>
+  The `visible` prop controls visibility, but hidden widgets still take up layout space unless completely removed from the tree.
+</Note>
+
+<Warning>
+  Setting `sensitive={false}` disables all user interaction with the widget and its children. The widget will appear grayed out.
+</Warning>

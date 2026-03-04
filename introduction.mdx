@@ -1,0 +1,164 @@
+---
+title: "Introduction"
+description: "Build native GTK+ desktop applications using React"
+---
+
+## What is React GTK?
+
+React GTK is a React renderer for building GTK+ desktop applications using JavaScript/GJS. It brings the power of React's declarative UI paradigm to the GTK platform, allowing you to build native desktop applications using familiar React patterns.
+
+<Card title="Quick example" icon="code">
+  ```tsx
+  import { createRoot, GtkWindow, GtkButton } from 'react-gtk-renderer';
+
+  const root = createRoot({ id: 'com.example.MyApp' });
+
+  root.render(
+    <GtkWindow title="Hello World">
+      <GtkButton onClicked={() => console.log('Clicked!')}>Click me</GtkButton>
+    </GtkWindow>
+  );
+  ```
+</Card>
+
+## Why React GTK?
+
+React GTK combines the best of both worlds: React's component model and GTK's native desktop capabilities.
+
+<CardGroup cols={2}>
+  <Card title="Declarative UI" icon="code-branch">
+    Write your GTK applications using JSX and React components. The renderer handles the imperative GTK API for you.
+  </Card>
+  
+  <Card title="Native performance" icon="gauge-high">
+    Your apps run natively with GTK 4.0, providing excellent performance and native platform integration.
+  </Card>
+  
+  <Card title="React ecosystem" icon="react">
+    Use React hooks, state management, and familiar patterns from the React ecosystem.
+  </Card>
+  
+  <Card title="TypeScript support" icon="code">
+    Full TypeScript support with complete type definitions for all GTK widgets and APIs.
+  </Card>
+</CardGroup>
+
+## Key features
+
+React GTK provides everything you need to build production-ready GTK desktop applications:
+
+<AccordionGroup>
+  <Accordion title="React reconciler for GTK+ 4.0" icon="arrows-rotate">
+    Built on top of React's reconciler, React GTK efficiently updates the GTK widget tree based on your component changes. Only the widgets that need to update are modified, ensuring optimal performance.
+  </Accordion>
+
+  <Accordion title="Built-in GTK widgets as React components" icon="window">
+    All common GTK widgets are available as React components:
+    - `GtkWindow` - Application windows
+    - `GtkBox` - Layout containers
+    - `GtkButton` - Interactive buttons
+    - `GtkLabel` - Text labels
+    - `GtkEntry` - Text input fields
+    - `GtkStack` - Stackable page containers
+    - And more...
+  </Accordion>
+
+  <Accordion title="Event handling and refs support" icon="bolt">
+    Handle GTK signals using familiar React patterns:
+    ```tsx
+    <GtkButton onClicked={() => console.log('Clicked!')}>Click me</GtkButton>
+    ```
+    
+    Access GTK widget instances directly using refs:
+    ```tsx
+    const buttonRef = useRef<GtkButtonImpl>();
+    <GtkButton ref={buttonRef}>Click me</GtkButton>
+    ```
+  </Accordion>
+
+  <Accordion title="Multi-window applications" icon="grid-2">
+    Create complex applications with multiple windows and modal dialogs:
+    ```tsx
+    <>
+      <GtkWindow title="Main Window">
+        {/* Main content */}
+      </GtkWindow>
+      
+      <GtkWindow modal title="Settings">
+        {/* Settings dialog */}
+      </GtkWindow>
+    </>
+    ```
+  </Accordion>
+
+  <Accordion title="Text formatting with Pango attributes" icon="font">
+    Apply rich text formatting to labels and entries using Pango attributes:
+    ```tsx
+    <GtkEntry
+      attributes={[
+        { start: 0, end: 5, type: 'foreground', value: 'red' },
+        { start: 5, end: 11, type: 'weight', value: 'bold' }
+      ]}
+    />
+    ```
+  </Accordion>
+
+  <Accordion title="GJS/GNOME JavaScript runtime integration" icon="gears">
+    Seamlessly integrates with the GJS runtime and GNOME platform, giving you access to the full GNOME stack.
+  </Accordion>
+</AccordionGroup>
+
+## How it works
+
+React GTK uses a custom React reconciler to bridge React components to GTK widgets:
+
+<Steps>
+  <Step title="Write React components">
+    You write standard React components using JSX and GTK component primitives.
+  </Step>
+  
+  <Step title="React reconciler processes changes">
+    React's reconciler determines what changed in your component tree.
+  </Step>
+  
+  <Step title="GTK widgets are updated">
+    The React GTK renderer creates and updates actual GTK widgets based on the React component tree.
+  </Step>
+  
+  <Step title="Native GTK rendering">
+    GTK handles the native rendering, event processing, and platform integration.
+  </Step>
+</Steps>
+
+## Platform requirements
+
+To use React GTK, you need:
+
+- **GJS runtime** - GNOME JavaScript bindings (GJS)
+- **GTK 4.0** - The GTK toolkit version 4.0 or later
+- **React 18.x** - React version 18.0 or higher
+- **Node.js** - For building your application with bundlers like Parcel
+
+<Note>
+  React GTK targets the GNOME/GTK platform. Your applications will run on Linux systems with GTK 4.0 installed.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install React GTK and set up your development environment
+  </Card>
+  
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Build your first React GTK application
+  </Card>
+  
+  <Card title="Core concepts" icon="book-open" href="/concepts/rendering">
+    Learn how React GTK renders components
+  </Card>
+  
+  <Card title="API reference" icon="code" href="/api/create-root">
+    Explore the complete API documentation
+  </Card>
+</CardGroup>

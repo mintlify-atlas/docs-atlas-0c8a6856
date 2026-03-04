@@ -1,97 +1,279 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "React GTK Documentation"
+description: "Build native GTK+ desktop applications with React"
+mode: "custom"
 ---
 
-## Setting up
+<div className="relative overflow-hidden dark:bg-[#0f1117] bg-white py-20">
+  <div className="max-w-6xl mx-auto px-6 lg:px-8">
+    <div className="grid lg:grid-cols-12 gap-12 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-5xl lg:text-6xl font-bold dark:text-white text-gray-900 mb-6">
+          Build GTK+ apps with React
+        </h1>
+        <p className="text-lg lg:text-xl dark:text-gray-400 text-gray-600 mb-8 max-w-2xl">
+          React GTK brings the power of React's declarative UI paradigm to the GTK+ platform. Write desktop applications using JSX and render them natively with GTK+ 4.0.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a
+            href="/quickstart"
+            className="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white bg-[#515d84] hover:bg-[#414b6e] transition-colors"
+          >
+            Get started
+          </a>
+          <a
+            href="/api/create-root"
+            className="inline-flex items-center px-6 py-3 rounded-lg font-semibold dark:text-white text-gray-900 dark:bg-white/10 bg-gray-100 dark:border-white/30 border border-gray-300 dark:hover:bg-white/20 hover:bg-gray-200 transition-colors"
+          >
+            API reference
+          </a>
+        </div>
+      </div>
+      <div className="lg:col-span-5 hidden lg:block">
+        <div className="dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border rounded-2xl p-6 shadow-xl">
+          <pre className="text-sm dark:text-gray-300 text-gray-700 overflow-x-auto">
+            <code>{`import { createRoot, GtkWindow, 
+  GtkButton } from 'react-gtk-renderer';
 
-Get your documentation site up and running in minutes.
+const root = createRoot({
+  id: 'com.example.MyApp'
+});
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+root.render(
+  <GtkWindow title="Hello World">
+    <GtkButton onClicked={() => 
+      console.log('Clicked!')
+    }>
+      Click me
+    </GtkButton>
+  </GtkWindow>
+);`}</code>
+          </pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-## Make it yours
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-semibold dark:text-white text-gray-900 mb-4">
+    Quick start
+  </h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">
+    Get up and running with React GTK in minutes
+  </p>
 
-Design a docs site that looks great and empowers your users.
+  <Steps>
+    <Step title="Install the package">
+      Install react-gtk-renderer using your preferred package manager:
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
+      <CodeGroup>
+      ```bash npm
+      npm install react-gtk-renderer react
+      ```
+
+      ```bash yarn
+      yarn add react-gtk-renderer react
+      ```
+
+      ```bash pnpm
+      pnpm add react-gtk-renderer react
+      ```
+      </CodeGroup>
+
+      <Note>React GTK requires React 18.x or higher and the GJS/GNOME JavaScript runtime with GTK 4.0 bindings.</Note>
+    </Step>
+
+    <Step title="Create your first component">
+      Create a simple React component that renders GTK widgets:
+
+      ```tsx
+      import { GtkWindow, GtkBox, GtkLabel, GtkButton, 
+        GtkOrientation, GtkAlign } from 'react-gtk-renderer';
+
+      export function MyApp() {
+        return (
+          <GtkWindow defaultHeight={400} defaultWidth={600} title="My App">
+            <GtkBox
+              orientation={GtkOrientation.VERTICAL}
+              spacing={12}
+              valign={GtkAlign.CENTER}
+              halign={GtkAlign.CENTER}
+            >
+              <GtkLabel label="Hello from React GTK!" />
+              <GtkButton onClicked={() => console.log('Button clicked')}>
+                Click me
+              </GtkButton>
+            </GtkBox>
+          </GtkWindow>
+        );
+      }
+      ```
+    </Step>
+
+    <Step title="Render your application">
+      Use `createRoot` to initialize your GTK application and render your React component:
+
+      ```tsx
+      import { createRoot } from 'react-gtk-renderer';
+      import { MyApp } from './components/app';
+
+      const root = createRoot({
+        id: 'com.example.myapp'
+      });
+
+      root.render(<MyApp />);
+      ```
+
+      <Tip>Your application ID should follow reverse-DNS notation (e.g., `com.example.appname`).</Tip>
+    </Step>
+  </Steps>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-semibold dark:text-white text-gray-900 mb-4">
+    Explore by topic
+  </h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">
+    Learn the fundamentals and build powerful desktop applications
+  </p>
+
+  <CardGroup cols={2}>
     <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+      title="Core concepts"
+      icon="book-open"
+      href="/concepts/rendering"
+    >
+      Understand how React GTK renders components and manages the GTK widget tree
+    </Card>
+    <Card
+      title="GTK components"
+      icon="window"
+      href="/api/components/gtk-window"
+    >
+      Explore all available GTK widgets as React components
+    </Card>
+    <Card
+      title="Event handling"
+      icon="bolt"
+      href="/guides/event-handling"
+    >
+      Learn how to handle user interactions and GTK signals in React
+    </Card>
+    <Card
+      title="Working with refs"
+      icon="link"
+      href="/guides/refs"
+    >
+      Access GTK widget instances directly using React refs
+    </Card>
+  </CardGroup>
+</div>
 
-## Create beautiful pages
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-semibold dark:text-white text-gray-900 mb-4">
+    Example applications
+  </h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">
+    See React GTK in action with real-world examples
+  </p>
 
-Everything you need to create world-class documentation.
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <a
+      href="/examples/basic-app"
+      className="group block rounded-2xl dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border dark:hover:border-[#515d84] hover:border-[#515d84] overflow-hidden transition-colors no-underline"
+    >
+      <div className="p-6">
+        <h3 className="text-base font-semibold dark:text-white text-gray-900 mb-2">
+          Basic application
+        </h3>
+        <p className="text-sm dark:text-gray-400 text-gray-600 mb-4">
+          A simple GTK application with buttons, labels, and basic layouts
+        </p>
+        <div className="flex items-center text-sm dark:text-gray-400 text-gray-600 dark:group-hover:text-[#515d84] group-hover:text-[#515d84]">
+          View example
+          <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+    <a
+      href="/examples/multiple-windows"
+      className="group block rounded-2xl dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border dark:hover:border-[#515d84] hover:border-[#515d84] overflow-hidden transition-colors no-underline"
+    >
+      <div className="p-6">
+        <h3 className="text-base font-semibold dark:text-white text-gray-900 mb-2">
+          Multiple windows
+        </h3>
+        <p className="text-sm dark:text-gray-400 text-gray-600 mb-4">
+          Create and manage multiple GTK windows within a single application
+        </p>
+        <div className="flex items-center text-sm dark:text-gray-400 text-gray-600 dark:group-hover:text-[#515d84] group-hover:text-[#515d84]">
+          View example
+          <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
 
-## Need inspiration?
+    <a
+      href="/examples/form-inputs"
+      className="group block rounded-2xl dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border dark:hover:border-[#515d84] hover:border-[#515d84] overflow-hidden transition-colors no-underline"
+    >
+      <div className="p-6">
+        <h3 className="text-base font-semibold dark:text-white text-gray-900 mb-2">
+          Form inputs
+        </h3>
+        <p className="text-sm dark:text-gray-400 text-gray-600 mb-4">
+          Handle user input with GtkEntry and text formatting with Pango attributes
+        </p>
+        <div className="flex items-center text-sm dark:text-gray-400 text-gray-600 dark:group-hover:text-[#515d84] group-hover:text-[#515d84]">
+          View example
+          <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+    <a
+      href="/guides/building-apps"
+      className="group block rounded-2xl dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border dark:hover:border-[#515d84] hover:border-[#515d84] overflow-hidden transition-colors no-underline"
+    >
+      <div className="p-6">
+        <h3 className="text-base font-semibold dark:text-white text-gray-900 mb-2">
+          Build complete apps
+        </h3>
+        <p className="text-sm dark:text-gray-400 text-gray-600 mb-4">
+          Learn best practices for structuring and building production GTK applications
+        </p>
+        <div className="flex items-center text-sm dark:text-gray-400 text-gray-600 dark:group-hover:text-[#515d84] group-hover:text-[#515d84]">
+          View guide
+          <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div className="mt-20 mb-16 max-w-5xl mx-auto px-6">
+  <div className="dark:bg-[#1a1d27] bg-gray-50 dark:border-[#27272a] border-gray-200 border rounded-2xl p-8 lg:p-12">
+    <h2 className="text-2xl lg:text-3xl font-semibold dark:text-white text-gray-900 mb-4">
+      Ready to get started?
+    </h2>
+    <p className="text-base dark:text-gray-400 text-gray-600 mb-6 max-w-2xl">
+      Follow our quickstart guide to create your first React GTK application in minutes.
+    </p>
+    <a
+      href="/quickstart"
+      className="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white bg-[#515d84] hover:bg-[#414b6e] transition-colors"
+    >
+      View quickstart guide
+    </a>
+  </div>
+</div>

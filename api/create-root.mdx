@@ -1,0 +1,169 @@
+---
+title: 'createRoot'
+description: 'Creates a root instance for rendering React components into a GTK application'
+---
+
+## Overview
+
+The `createRoot` function creates a root application instance that enables you to render React components into a GTK+ desktop application. It initializes a GTK Application with the specified configuration and returns a `RootAppInstance` that can be used to render your React component tree.
+
+## Signature
+
+```typescript
+function createRoot(config: RootAppConfig): RootAppInstance
+```
+
+## Parameters
+
+<ParamField path="config" type="RootAppConfig" required>
+  Configuration object for the root application
+
+  <ParamField path="config.id" type="string" required>
+    The application ID (typically in reverse DNS notation, e.g., `com.example.myapp`)
+  </ParamField>
+
+  <ParamField path="config.flags" type="number" default="Gio.ApplicationFlags.FLAGS_NONE">
+    GTK application flags. Common values include:
+    - `Gio.ApplicationFlags.FLAGS_NONE` - No special flags
+    - `Gio.ApplicationFlags.HANDLES_OPEN` - Application can open files
+    - `Gio.ApplicationFlags.HANDLES_COMMAND_LINE` - Application handles command line
+  </ParamField>
+</ParamField>
+
+## Return Value
+
+<ResponseField name="RootAppInstance" type="object">
+  An instance of the root application with the following method:
+
+  <ResponseField name="render" type="function">
+    Renders the React component tree into the GTK application.
+
+    **Signature:**
+    ```typescript
+    render(element: JSX.Element, argv?: string[]): void
+    ```
+
+    **Parameters:**
+    - `element` (JSX.Element) - The root React component to render
+    - `argv` (string[], optional) - Command-line arguments array (defaults to `[]`)
+  </ResponseField>
+</ResponseField>
+
+## Usage
+
+### Basic Example
+
+```tsx
+import { createRoot } from 'react-gtk-renderer';
+import { MyApp } from './components/app';
+
+// Create the root instance
+const root = createRoot({
+  id: 'com.example.myapp',
+});
+
+// Render your React component
+root.render(<MyApp />);
+```
+
+### With Command-Line Arguments
+
+```tsx
+import { createRoot } from 'react-gtk-renderer';
+import { MyApp } from './components/app';
+
+const root = createRoot({
+  id: 'com.example.myapp',
+});
+
+// Pass command-line arguments to the GTK application
+root.render(<MyApp />, process.argv);
+```
+
+### With Application Flags
+
+```tsx
+import { createRoot } from 'react-gtk-renderer';
+import { MyApp } from './components/app';
+
+declare const imports: any;
+const { Gio } = imports.gi;
+
+const root = createRoot({
+  id: 'com.example.myapp',
+  flags: Gio.ApplicationFlags.HANDLES_OPEN,
+});
+
+root.render(<MyApp />);
+```
+
+### Complete Application Setup
+
+```tsx
+import { createRoot } from 'react-gtk-renderer';
+import { GtkWindow, GtkButton } from 'react-gtk-renderer';
+
+declare const imports: any;
+
+imports.package.init({
+  name: 'com.example.myapp',
+  version: '1.0.0',
+  prefix: '/usr',
+  libdir: '/usr/lib',
+  pkgdatadir: '/usr/share/myapp',
+});
+
+imports.package.run({
+  main: function (argv: string[]) {
+    const root = createRoot({
+      id: 'com.example.myapp',
+    });
+
+    root.render(
+      <GtkWindow title="My Application" defaultWidth={400} defaultHeight={300}>
+        <GtkButton label="Click Me" />
+      </GtkWindow>,
+      argv
+    );
+  },
+});
+```
+
+## Type Definitions
+
+### RootAppConfig
+
+```typescript
+interface RootAppConfig {
+  id: string;
+  flags?: number;
+}
+```
+
+### RootAppInstance
+
+```typescript
+interface RootAppInstance {
+  render(element: JSX.Element, argv: string[]): void;
+}
+```
+
+## Notes
+
+<Note>
+  The `createRoot` function must be called before rendering any React components. It sets up the underlying GTK Application and React reconciler.
+</Note>
+
+<Note>
+  The application ID should follow reverse DNS notation (e.g., `com.example.myapp`) to ensure uniqueness across the system.
+</Note>
+
+<Note>
+  The `render` method blocks until the GTK application exits, so it should typically be the last call in your main function.
+</Note>
+
+## Related
+
+- [RootAppConfig](/api/types/contracts) - Configuration interface for createRoot
+- [RootAppInstance](/api/types/contracts) - Return type of createRoot
+- [GtkWindow](/api/components/gtk-window) - Top-level window component

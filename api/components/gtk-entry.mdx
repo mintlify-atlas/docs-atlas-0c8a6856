@@ -1,0 +1,364 @@
+---
+title: GtkEntry
+description: A single-line text input field
+---
+
+`GtkEntry` is a single-line text entry widget that allows users to input text. It supports features like placeholder text, text attributes, password mode, and input validation.
+
+## Props
+
+<ParamField path="placeholderText" type="string">
+  Text displayed when the entry is empty and unfocused.
+</ParamField>
+
+<ParamField path="maxLength" type="number">
+  Maximum number of characters allowed in the entry.
+  
+  Default: `0` (unlimited)
+</ParamField>
+
+<ParamField path="hasFrame" type="boolean">
+  Whether the entry should draw a frame/border.
+  
+  Default: `true`
+</ParamField>
+
+<ParamField path="activatesDefault" type="boolean">
+  Whether pressing Enter activates the default widget (like a submit button).
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="invisibleChar" type="number">
+  The character code to use when masking entry contents in password mode.
+</ParamField>
+
+<ParamField path="invisibleCharSet" type="boolean">
+  Whether the invisible character has been explicitly set.
+</ParamField>
+
+<ParamField path="overwriteMode" type="boolean">
+  If `true`, typed text overwrites existing text instead of inserting.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="enableEmojiCompletion" type="boolean">
+  Whether to suggest emoji replacements for :-delimited names like `:heart:`.
+  
+  Default: `false`
+</ParamField>
+
+<ParamField path="attributes" type="PangoAttrItem[]">
+  A list of Pango attributes to apply to the text. Each item specifies a range and formatting:
+  
+  ```tsx
+  {
+    start: number;  // Start position
+    end: number;    // End position
+    type: string;   // Attribute type (e.g., 'foreground', 'weight')
+    value: string;  // Attribute value (e.g., 'red', 'bold')
+  }
+  ```
+</ParamField>
+
+<ParamField path="inputPurpose" type="GtkInputPurpose">
+  The purpose of the text field, providing hints to input methods and on-screen keyboards.
+</ParamField>
+
+<ParamField path="inputHints" type="GtkInputHints">
+  Additional hints for input methods to fine-tune their behavior.
+</ParamField>
+
+<ParamField path="imModule" type="string">
+  Which input method module should be used for this entry.
+</ParamField>
+
+## Events
+
+<ParamField path="onChanged" type="(self: GtkEntryImpl) => void">
+  Emitted when the entry contents change. This is the most commonly used event.
+</ParamField>
+
+<ParamField path="onActivate" type="(self: GtkEntryImpl) => void">
+  Emitted when the user presses Enter in the entry.
+</ParamField>
+
+<ParamField path="onInsertText" type="(self: GtkEntryImpl, text: string, length: number, position: number) => void">
+  Emitted when text is inserted into the entry.
+</ParamField>
+
+<ParamField path="onDeleteText" type="(self: GtkEntryImpl, start: number, end: number) => void">
+  Emitted when text is deleted from the entry.
+</ParamField>
+
+<ParamField path="onIconPress" type="(self: GtkEntryImpl, position: GtkEntryIconPosition) => void">
+  Emitted when an icon in the entry is clicked.
+</ParamField>
+
+<ParamField path="onIconRelease" type="(self: GtkEntryImpl, position: GtkEntryIconPosition) => void">
+  Emitted when a mouse button is released over an icon.
+</ParamField>
+
+<ParamField path="onEditingDone" type="(self: GtkEntryImpl) => void">
+  Signal for cell renderers to update their value from the entry.
+</ParamField>
+
+<ParamField path="onRemoveWidget" type="(self: GtkEntryImpl) => void">
+  Emitted when the entry widget is being removed.
+</ParamField>
+
+### Inherited Props
+
+`GtkEntry` extends [`GtkWidget`](/api/components/gtk-widget) and inherits all its props including layout, styling, and event handling properties.
+
+## Usage
+
+### Basic Text Input
+
+```tsx
+import { GtkEntry } from 'react-gtk-renderer';
+
+function BasicInput() {
+  return (
+    <GtkEntry 
+      placeholderText="Enter your name"
+      onChanged={(entry) => console.log(entry.text)}
+    />
+  );
+}
+```
+
+### Controlled Input with State
+
+```tsx
+import { GtkEntry, GtkLabel, GtkBox } from 'react-gtk-renderer';
+import { useState } from 'react';
+
+function ControlledInput() {
+  const [value, setValue] = useState('');
+  
+  return (
+    <GtkBox orientation={GtkOrientation.VERTICAL} spacing={10}>
+      <GtkEntry 
+        placeholderText="Type something"
+        onChanged={(entry) => setValue(entry.text)}
+      />
+      <GtkLabel label={`You typed: ${value}`} />
+    </GtkBox>
+  );
+}
+```
+
+### Entry with Text Attributes
+
+Style specific ranges of text:
+
+```tsx
+import { GtkEntry, GtkEntryImpl } from 'react-gtk-renderer';
+import { useRef, useEffect } from 'react';
+
+function StyledEntry() {
+  const entryRef = useRef<GtkEntryImpl>();
+  
+  useEffect(() => {
+    // Set initial text
+    entryRef.current.text = 'Hello World';
+  }, []);
+  
+  return (
+    <GtkEntry
+      ref={entryRef}
+      attributes={[
+        {
+          start: 0,
+          end: 5,
+          type: 'foreground',
+          value: 'red',
+        },
+        {
+          start: 6,
+          end: 11,
+          type: 'weight',
+          value: 'bold',
+        },
+      ]}
+      onChanged={(entry) => console.log(entry.text)}
+    />
+  );
+}
+```
+
+### Form Submit on Enter
+
+```tsx
+import { GtkEntry, GtkButton, GtkBox } from 'react-gtk-renderer';
+import { useState } from 'react';
+
+function LoginForm() {
+  const [username, setUsername] = useState('');
+  
+  const handleSubmit = () => {
+    console.log('Submitting:', username);
+  };
+  
+  return (
+    <GtkBox orientation={GtkOrientation.VERTICAL} spacing={10}>
+      <GtkEntry
+        placeholderText="Username"
+        activatesDefault
+        onChanged={(entry) => setUsername(entry.text)}
+        onActivate={handleSubmit}
+      />
+      <GtkButton label="Login" onClicked={handleSubmit} />
+    </GtkBox>
+  );
+}
+```
+
+### Character Limit
+
+```tsx
+import { GtkEntry, GtkLabel, GtkBox } from 'react-gtk-renderer';
+import { useState } from 'react';
+
+function LimitedEntry() {
+  const [text, setText] = useState('');
+  const maxLength = 50;
+  
+  return (
+    <GtkBox orientation={GtkOrientation.VERTICAL} spacing={5}>
+      <GtkEntry
+        maxLength={maxLength}
+        placeholderText="Max 50 characters"
+        onChanged={(entry) => setText(entry.text)}
+      />
+      <GtkLabel label={`${text.length}/${maxLength}`} />
+    </GtkBox>
+  );
+}
+```
+
+## Instance Properties
+
+When using a ref, you can access these properties on the `GtkEntryImpl` instance:
+
+### text
+
+Get or set the entry text:
+
+```tsx
+import { GtkEntryImpl } from 'react-gtk-renderer';
+import { useRef } from 'react';
+
+const entryRef = useRef<GtkEntryImpl>();
+
+// Get text
+const currentText = entryRef.current.text;
+
+// Set text
+entryRef.current.text = "New text";
+```
+
+### buffer
+
+Access the underlying `GtkEntryBuffer` for advanced text manipulation:
+
+```tsx
+import { useRef, useEffect } from 'react';
+
+const entryRef = useRef<GtkEntryImpl>();
+
+useEffect(() => {
+  const buffer = entryRef.current.buffer;
+  
+  // Set text
+  buffer.text = 'Hello World';
+  
+  // Delete range
+  buffer.delete_text(5, -1);  // Delete from position 5 to end
+  
+  // Insert text
+  buffer.insert_text(5, ', Hi', -1);
+  
+  console.log(buffer.text);  // "Hello, Hi"
+}, []);
+```
+
+## Common Patterns
+
+### Real-time Validation
+
+```tsx
+import { GtkEntry, GtkLabel } from 'react-gtk-renderer';
+import { useState } from 'react';
+
+function EmailInput() {
+  const [email, setEmail] = useState('');
+  const [isValid, setIsValid] = useState(true);
+  
+  const validateEmail = (text: string) => {
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
+    setIsValid(isValid);
+    setEmail(text);
+  };
+  
+  return (
+    <GtkBox orientation={GtkOrientation.VERTICAL} spacing={5}>
+      <GtkEntry
+        placeholderText="Email address"
+        onChanged={(entry) => validateEmail(entry.text)}
+      />
+      {!isValid && email && (
+        <GtkLabel 
+          label='<span foreground="red">Invalid email</span>'
+          useMarkup
+        />
+      )}
+    </GtkBox>
+  );
+}
+```
+
+### Search Input
+
+```tsx
+import { GtkEntry } from 'react-gtk-renderer';
+import { useState, useEffect } from 'react';
+
+function SearchInput() {
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  useEffect(() => {
+    // Debounced search
+    const timer = setTimeout(() => {
+      if (searchTerm) {
+        console.log('Searching for:', searchTerm);
+      }
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+  
+  return (
+    <GtkEntry
+      placeholderText="Search..."
+      onChanged={(entry) => setSearchTerm(entry.text)}
+    />
+  );
+}
+```
+
+## Notes
+
+<Note>
+  Use the `text` property on the entry instance to get or set the current text value.
+</Note>
+
+<Note>
+  The `buffer` property provides access to the underlying `GtkEntryBuffer` for advanced text manipulation operations.
+</Note>
+
+<Warning>
+  Text attributes require careful management of start and end positions. Invalid ranges will be ignored.
+</Warning>
