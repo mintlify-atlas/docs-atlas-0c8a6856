@@ -1,0 +1,114 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "React GTK",
+  "projectDescription": "A React renderer for building GTK+ desktop applications using JavaScript/GJS",
+  "theme": "palm",
+  "primaryColor": "#515d84",
+  "lightColor": "#2b2c34",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/rendering",
+              "concepts/widgets",
+              "concepts/reconciler"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/building-apps",
+              "guides/event-handling",
+              "guides/refs",
+              "guides/styling"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/basic-app",
+              "examples/multiple-windows",
+              "examples/form-inputs"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core API",
+            "pages": [
+              "api/create-root"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "api/components/gtk-window",
+              "api/components/gtk-box",
+              "api/components/gtk-label",
+              "api/components/gtk-button",
+              "api/components/gtk-entry",
+              "api/components/gtk-stack",
+              "api/components/gtk-stack-page",
+              "api/components/gtk-widget"
+            ]
+          },
+          {
+            "group": "Types & Enums",
+            "pages": [
+              "api/types/contracts",
+              "api/types/enums"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "React reconciler for GTK+ 4.0",
+    "Declarative UI with JSX/TSX",
+    "Built-in GTK widgets as React components",
+    "Full TypeScript support with type definitions",
+    "Event handling and refs support",
+    "Multi-window applications",
+    "Text formatting with Pango attributes",
+    "GJS/GNOME JavaScript runtime integration"
+  ],
+  "publicApiSurface": [
+    "createRoot",
+    "GtkWindow",
+    "GtkBox",
+    "GtkLabel",
+    "GtkButton",
+    "GtkEntry",
+    "GtkStack",
+    "GtkStackPage",
+    "GtkWidget",
+    "GtkAlign",
+    "GtkOrientation",
+    "GtkStateFlags",
+    "GtkTextDirection",
+    "GtkDirectionType",
+    "GtkAccessibleRole",
+    "GtkInputHints",
+    "GtkInputPurpose",
+    "GtkEntryIconPosition",
+    "GtkStackTransitionType",
+    "GtkOverflow"
+  ]
+}
